@@ -25,7 +25,7 @@ class WheatModel(BaseCropModel):
     high_extrema_temperature = 32
     high_extrema_exposure_days = 5
     low_extrema_temperature = 3
-    low_extrema_exposure_days = 5
+    low_extrema_exposure_days = 30
 
     # 한계값
     tillering_max_doy_range = 50

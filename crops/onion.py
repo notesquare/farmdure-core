@@ -23,7 +23,7 @@ class OnionModel(BaseCropModel):
     high_extrema_temperature = 25
     high_extrema_exposure_days = 10
     low_extrema_temperature = 4
-    low_extrema_exposure_days = 10
+    low_extrema_exposure_days = 30
 
     # 고온 피해: 구비대기 (수확 40일 전) 25°C 이상에서 생육둔화
 

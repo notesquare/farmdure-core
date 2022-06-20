@@ -24,7 +24,7 @@ class SweetPotatoModel(BaseCropModel):
     high_extrema_temperature = 32.2
     high_extrema_exposure_days = 15
     low_extrema_temperature = 15
-    low_extrema_exposure_days = 5
+    low_extrema_exposure_days = 30
 
     @property
     def events(self):

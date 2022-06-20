@@ -23,7 +23,7 @@ class SesameModel(BaseCropModel):
     high_extrema_temperature = 30
     high_extrema_exposure_days = 5
     low_extrema_temperature = 18
-    low_extrema_exposure_days = 5
+    low_extrema_exposure_days = 30
 
     # 고온피해: 개화기 40°C 이상 고온 조기낙화 등숙률 저하
 

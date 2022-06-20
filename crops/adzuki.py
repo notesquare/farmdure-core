@@ -23,7 +23,7 @@ class AdzukiModel(BaseCropModel):
     high_extrema_temperature = 30
     high_extrema_exposure_days = 15
     low_extrema_temperature = 16
-    low_extrema_exposure_days = 5
+    low_extrema_exposure_days = 30
 
     # 한계값
     bloom_max_doy_range = 20

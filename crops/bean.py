@@ -22,7 +22,7 @@ class BeanModel(BaseCropModel):
     high_extrema_temperature = 35
     high_extrema_exposure_days = 5
     low_extrema_temperature = 20
-    low_extrema_exposure_days = 5
+    low_extrema_exposure_days = 30
 
     @property
     def events(self):

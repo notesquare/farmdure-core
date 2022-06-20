@@ -22,7 +22,7 @@ class GarlicModel(BaseCropModel):
     high_extrema_temperature = 25
     high_extrema_exposure_days = 5
     low_extrema_temperature = 10
-    low_extrema_exposure_days = 5
+    low_extrema_exposure_days = 30
 
     # 고온 피해: 쪽 분화 ~ 수확전 최고기온 25°C 이상에서 생육정지
     # 쪽분화 1월 21일 ~ 3월 21일

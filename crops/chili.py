@@ -25,7 +25,7 @@ class ChiliModel(BaseCropModel):
     high_extrema_temperature = 40
     high_extrema_exposure_days = 5
     low_extrema_temperature = 10
-    low_extrema_exposure_days = 5
+    low_extrema_exposure_days = 30
 
     # 한계값
     green_chili_harvest_max_doy_range = 30

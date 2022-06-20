@@ -25,7 +25,7 @@ class CornModel(BaseCropModel):
     high_extrema_temperature = 45
     high_extrema_exposure_days = 5
     low_extrema_temperature = 10
-    low_extrema_exposure_days = 5
+    low_extrema_exposure_days = 30
 
     # 2. 고온 장해: 출웅기(출사전 6~7 일) 최고기온 35°C 초과 임실률 감소
 
