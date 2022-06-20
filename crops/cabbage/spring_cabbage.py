@@ -20,12 +20,6 @@ class SpringCabbageModel(CabbageModel):
     growth_gdd = 601  # 생육 완료
     harvest_gdd = 601  # 수확
 
-    # 재배관련 - environments
-    # TODO: 자료 조사 필요
-    freezing_temperature = -3
-
-    # 재배관련 - warnings
-
     # 한계값
     ripening_max_doy_range = 30
     harvest_max_doy_range = 15

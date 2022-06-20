@@ -19,10 +19,13 @@ class SesameModel(BaseCropModel):
     growth_gdd = 1572
     harvest_gdd = 1572  # 수확
 
-    # 재배관련 - environments
-    # TODO
-    # TODO: 고온피해: 개화기 40°C 이상 고온 조기낙화 등숙률 저하
-    burning_temperature = 40
+    # 재배관련 - warnings
+    high_extrema_temperature = 30
+    high_extrema_exposure_days = 5
+    low_extrema_temperature = 18
+    low_extrema_exposure_days = 5
+
+    # 고온피해: 개화기 40°C 이상 고온 조기낙화 등숙률 저하
 
     # 한계값
     bloom_max_doy_range = 40
@@ -53,39 +56,6 @@ class SesameModel(BaseCropModel):
         return ret
 
     @property
-    def environments(self):
-        ret = super().environments
-
-        df = self.gdd_weather_df.copy()
-
-        period = 10  # 10일 마다 고온장해 확률값을 나타내는 대표값을 계산
-
-        df['premature_abscission'] = 0
-
-        # 최고기온 40도 이상에서 참깨 조기낙화
-        df.loc[df['tmax'] >= 40, 'premature_abscission'] = 1
-
-        # 10일 동안 비대정지 확률값 계산
-        prob_df = df.groupby((df.index - 1) // period + 1)\
-                    .agg({'premature_abscission': 'mean'})
-
-        data = []
-        for k, v in prob_df['premature_abscission'].to_dict().items():
-            data.append({
-                'doy_range': (k*period - period + 1, min(k*period, 366)),
-                'prob': v
-            })
-
-        ret.append({
-            'type': 'negative',
-            'name': '조기낙화',
-            'data': data,
-            'ref': 'bloom_range'
-        })
-
-        return ret
-
-    @property
     def schedules(self):
         ret = super().schedules
 
@@ -108,4 +78,37 @@ class SesameModel(BaseCropModel):
                 'text': ''
             }
         ])
+        return ret
+
+    @property
+    def warnings(self):
+        ret = super().warnings
+
+        df = self.gdd_weather_df.copy()
+
+        # 최고기온 40도 이상에서 참깨 조기낙화
+        danger_temperature = 40
+        start_doy = self.start_doy  # 파종기
+        bloom_range = [
+            self.get_event_end_doy(start_doy, gdd)
+            for gdd in self.bloom_gdd_range
+        ]
+
+        # 한계값으로 clipping
+        if bloom_range[1] - bloom_range[0] > self.bloom_max_doy_range:
+            bloom_range[1] = bloom_range[0] + self.bloom_max_doy_range
+
+        premature_abscission = (df.loc[
+            bloom_range[0]: bloom_range[1],
+            'tmax'] >= danger_temperature).sum() > 0
+
+        if premature_abscission:
+            ret.append({
+                'title': '수확량 감소',
+                'type': '조기낙화 주의',
+                'message': f"""
+                    개화기 중 {danger_temperature}℃ 이상에 노출되었습니다.
+                    등숙률이 저하될 수 있습니다."""
+            })
+
         return ret

@@ -96,9 +96,10 @@ class BaseCropModel:
         if self.weather_df is None:
             raise ValueError('weather data not prepared.')
 
+        event_base_doy = max(event_base_doy, 2)
         df = self.gdd_weather_df
         event_doy = (
-            df['tavg_dev_cumsum'] >= self.growth_gdd +
+            df['tavg_dev_cumsum'] >= gdd +
             df.loc[event_base_doy - 1, 'tavg_dev_cumsum']
         ).idxmax()
 
@@ -128,59 +129,6 @@ class BaseCropModel:
         return [self.min_start_doy, self.max_start_doy]
 
     @property
-    def environments(self):
-        if self.weather_df is None:
-            raise ValueError('weather data not prepared.')
-
-        n_years = len(self.weather_df['year'].unique())
-        period = 10  # days, for every period temperature is averaged
-
-        ret = []
-
-        df = self.weather_df.reset_index()
-        doy_grouper = df.groupby((df['doy'] - 1) // period + 1)
-        if hasattr(self, 'freezing_temperature'):
-            _df = doy_grouper.agg({
-                'tmin': lambda col: (col < self.freezing_temperature).sum()
-            }) / (n_years * period)
-            _df = _df.round(2)
-
-            data = []
-            for k, v in _df['tmin'].to_dict().items():
-                data.append({
-                    'doy_range': (k*period - period + 1, min(k*period, 366)),
-                    'prob': v
-                })
-            ret.append({
-                'type': 'negative',
-                'name': '❄️ 동해 주의',
-                'color': '#42C2FF',
-                'data': data,
-                'ref': 'growth_range'
-            })
-
-        if hasattr(self, 'burning_temperature'):
-            _df = doy_grouper.agg({
-                'tmax': lambda col: (col > self.burning_temperature).sum()
-            }) / (n_years * period)
-            _df = _df.round(2)
-
-            data = []
-            for k, v in _df['tmax'].to_dict().items():
-                data.append({
-                    'doy_range': (k*period - period + 1, min(k*period, 366)),
-                    'prob': v
-                })
-            ret.append({
-                'type': 'negative',
-                'name': '🔥 열해 주의',
-                'color': '#E83A14',
-                'data': data,
-                'ref': 'growth_range'
-            })
-        return ret
-
-    @property
     def growths(self):
         # 작물의 변화 일정
         return [
@@ -194,14 +142,15 @@ class BaseCropModel:
     @property
     def progress(self):
         df = self.gdd_weather_df
+        _doy = max(self.start_doy - 1, 1)
         starting_cummulative_temperature = \
-            df.loc[self.start_doy - 1, 'tavg_dev_cumsum']
+            df.loc[_doy, 'tavg_dev_cumsum']
         progress = (
             df['tavg_dev_cumsum'] - starting_cummulative_temperature
         ) / self.growth_gdd
 
         data = progress\
-            .loc[self.start_doy - 1: self.end_doy]\
+            .loc[_doy: self.end_doy]\
             .astype('f8')\
             .round(2)\
             .clip(upper=1.)\
@@ -218,9 +167,6 @@ class BaseCropModel:
     @property
     def events(self):
         events = self.growths
-        progress = self.progress
-
-        events.append(progress)
         return events
 
     @property
@@ -247,4 +193,74 @@ class BaseCropModel:
 
     @property
     def warnings(self):
-        return []
+        ret = []
+
+        start_doy = self.start_doy
+        end_doy = self.end_doy
+
+        # 1. 한계온도 & 노출일수
+        # 생육한계 최고온도 & 노출일수
+        df = self.gdd_weather_df.copy()
+        if hasattr(self, 'high_extrema_temperature'):
+            df['high_extrema_exposure'] = \
+                df['tmax'] > self.high_extrema_temperature
+            df['high_extrema_exposure_group'] = \
+                df['high_extrema_exposure'].diff(1).cumsum()
+
+            high_extrema_exposure_doy_ranges = []
+            for idx, group in df.groupby('high_extrema_exposure_group'):
+                high_extrema_col = group['high_extrema_exposure']
+
+                if (high_extrema_col.all() and high_extrema_col.count()
+                        >= self.high_extrema_exposure_days):
+                    high_extrema_exposure_doy_ranges.append(
+                        [group.index[0], group.index[-1]]
+                    )
+            for high_extrema_doy_range in high_extrema_exposure_doy_ranges:
+                is_intersected = min(end_doy, high_extrema_doy_range[1]) \
+                    > max(start_doy, high_extrema_doy_range[0])
+                if is_intersected:
+                    ret.append({
+                        'title': '재배가능성 낮음',
+                        'type': '고온해 위험',
+                        'message': f"""생육한계 최고온도 {
+                            self.high_extrema_temperature
+                        }℃ 초과의 온도에 연속 {
+                            self.high_extrema_exposure_days
+                        }일 이상 노출되었습니다."""
+                    })
+                    break
+
+        # 생육한계 최저온도 & 노출일수
+        if hasattr(self, 'low_extrema_temperature'):
+            df['low_extrema_exposure'] = \
+                df['tmin'] < self.low_extrema_temperature
+            df['low_extrema_exposure_group'] = \
+                df['low_extrema_exposure'].diff(1).cumsum()
+
+            low_extrema_exposure_doy_ranges = []
+            for idx, group in df.groupby('low_extrema_exposure_group'):
+                low_extrema_col = group['low_extrema_exposure']
+
+                if (low_extrema_col.all() and low_extrema_col.count()
+                        >= self.low_extrema_exposure_days):
+
+                    low_extrema_exposure_doy_ranges.append(
+                        [group.index[0], group.index[-1]]
+                    )
+            for low_extrema_doy_range in low_extrema_exposure_doy_ranges:
+                is_intersected = min(end_doy, low_extrema_doy_range[1]) \
+                    > max(start_doy, low_extrema_doy_range[0])
+                if is_intersected:
+                    ret.append({
+                        'title': '재배가능성 낮음',
+                        'type': '동해 위험',
+                        'message': f"""생육한계 최저온도 {
+                            self.low_extrema_temperature
+                        }℃ 미만의 온도에 연속 {
+                            self.low_extrema_exposure_days
+                        }일 이상 노출되었습니다."""
+                    })
+                    break
+
+        return ret

@@ -20,6 +20,12 @@ class SweetPotatoModel(BaseCropModel):
     growth_gdd = 1462  # 생육 완료
     harvest_gdd = 1462  # 수확
 
+    # 재배관련 - warnings
+    high_extrema_temperature = 32.2
+    high_extrema_exposure_days = 5
+    low_extrema_temperature = 15
+    low_extrema_exposure_days = 5
+
     @property
     def events(self):
         ret = super().events

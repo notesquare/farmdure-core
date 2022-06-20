@@ -21,6 +21,12 @@ class WheatModel(BaseCropModel):
     growth_gdd = 1671  # 생육 완료
     harvest_gdd_range = [1671, 2595]  # 수확
 
+    # 재배관련 - warnings
+    high_extrema_temperature = 32
+    high_extrema_exposure_days = 5
+    low_extrema_temperature = 3
+    low_extrema_exposure_days = 5
+
     # 한계값
     tillering_max_doy_range = 50
     heading_max_doy_range = 30

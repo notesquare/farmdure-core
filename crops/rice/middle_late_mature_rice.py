@@ -25,7 +25,9 @@ class MiddleLateMatureRiceModel(RiceModel):
         # events 계산
         start_doy = self.start_doy  # 이앙기
         heading = self.get_event_end_doy(start_doy, self.heading_gdd)
-        heading_range = [heading - 5, heading + 9]
+        heading_range = [
+            max(start_doy, heading - 5), heading + 9
+        ]
         harvest = self.get_event_end_doy(start_doy, self.harvest_gdd)
         harvest_range = [harvest - 3, harvest + 7]
         fertilize_range = [

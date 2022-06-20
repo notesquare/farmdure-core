@@ -6,7 +6,7 @@ import pandas as pd
 def get_weather_df(csv_fp=None):
     # TODO: get dataframe with coord
     if csv_fp is None:
-        csv_fp = Path('../../assets') / 'sample.csv'
+        csv_fp = Path('../../../assets') / 'sample.csv'
 
     raw_df = pd.read_csv(csv_fp,
                         #  usecols=RAW_COLUMN_NAMES,

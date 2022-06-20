@@ -18,7 +18,11 @@ class RadishModel(BaseCropModel):
     growth_gdd = 850  # 생육 완료
     harvest_gdd = 850  # 수확
 
-    # 재배관련 - environments
+    # 재배관련 - warnings
+    high_extrema_temperature = 35
+    high_extrema_exposure_days = 5
+    low_extrema_temperature = 4
+    low_extrema_exposure_days = 5
 
     @property
     def events(self):

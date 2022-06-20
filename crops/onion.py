@@ -19,8 +19,12 @@ class OnionModel(BaseCropModel):
     growth_gdd = 2092  # 생육 완료
     harvest_gdd_range = [2092, 2352]  # 수확
 
-    # 재배관련 - environments
-    # TODO:
+    # 재배관련 - warnings
+    high_extrema_temperature = 25
+    high_extrema_exposure_days = 5
+    low_extrema_temperature = 4
+    low_extrema_exposure_days = 5
+
     # 고온 피해: 구비대기 (수확 40일 전) 25°C 이상에서 생육둔화
 
     # 한계값
@@ -69,28 +73,36 @@ class OnionModel(BaseCropModel):
         return ret
 
     @property
-    def environments(self):
-        ret = super().environments
+    def warnings(self):
+        ret = super().warnings
 
         df = self.gdd_weather_df.copy()
-        period = 10  # 10일 마다 고온장해 확률값을 나타내는 대표값을 계산
-        df['develop_slowed'] = 0
-        df.loc[df['tmax'] >= 25, 'develop_slowed'] = 1  # 최고기온 25도 이상에서 양파 생육정지
-        prob_df = df.groupby((df.index - 1) // period + 1)\
-                    .agg({'develop_slowed': 'mean'})  # 10일 동안 비대정지 확률값 계산
 
-        data = []
-        for k, v in prob_df['develop_slowed'].to_dict().items():
-            data.append({
-                'doy_range': (k*period - period + 1, min(k*period, 366)),
-                'prob': v
+        start_doy = self.start_doy
+        harvest_range = [
+            self.get_event_end_doy(start_doy, gdd)
+            for gdd in self.harvest_gdd_range
+        ]
+
+        # 한계값으로 clipping
+        if harvest_range[1] - harvest_range[0] > self.harvest_max_doy_range:
+            harvest_range[1] = harvest_range[0] + self.harvest_max_doy_range
+
+        # clipping된 수확기 기준으로 구비대기 설정
+        onion_develop_range = [harvest_range[0] - 40, harvest_range[1] - 40]
+
+        danger_temperature = 25
+        # 최고기온 25도 초과에서 양파 생육정지
+        develop_slowed = \
+            (df.loc[onion_develop_range[0]: onion_develop_range[1],
+                    'tmax']).sum() > danger_temperature
+
+        if develop_slowed:
+            ret.append({
+                'title': '수확량 감소',
+                'type': ' 생육저하 주의',
+                'message': f'구비대기 시기, {danger_temperature}℃ 이상에서 생윤둔화'
             })
-        ret.append({
-            'type': 'negative',
-            'name': '생육둔화',
-            'data': data,
-            'ref': 'onion_develop_range'
-        })
         return ret
 
     @property

@@ -19,7 +19,11 @@ class AdzukiModel(BaseCropModel):
     growth_gdd = 2300  # 생육 완료
     harvest_gdd = 2300  # 수확
 
-    # 재배관련 - environments
+    # 재배관련 - warnings
+    high_extrema_temperature = 30
+    high_extrema_exposure_days = 5
+    low_extrema_temperature = 16
+    low_extrema_exposure_days = 5
 
     # 한계값
     bloom_max_doy_range = 20

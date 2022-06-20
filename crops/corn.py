@@ -20,8 +20,14 @@ class CornModel(BaseCropModel):
     growth_gdd = 1747  # 생육 완료
     harvest_gdd = 1747  # 수확
 
-    # 재배관련 - environments
-    # 고온 장해: 출웅기(출사전 6~7 일) 최고기온 35°C 초과 임실률 감소
+    # 재배관련 - warnings
+    # 1. 한계온도 & 노출일수
+    high_extrema_temperature = 45
+    high_extrema_exposure_days = 5
+    low_extrema_temperature = 10
+    low_extrema_exposure_days = 5
+
+    # 2. 고온 장해: 출웅기(출사전 6~7 일) 최고기온 35°C 초과 임실률 감소
 
     @property
     def events(self):
@@ -50,34 +56,6 @@ class CornModel(BaseCropModel):
         return ret
 
     @property
-    def environments(self):
-        ret = super().environments
-
-        df = self.gdd_weather_df.copy()
-
-        period = 10  # 10일 마다 고온장해 확률값을 나타내는 대표값을 계산
-
-        df['ripening_reduced'] = 0
-        df.loc[df['tmax'] > 35, 'ripening_reduced'] = 1  # 최고기온 35도 초과에서 임실률 감소
-        prob_df = df.groupby((df.index - 1) // period + 1)\
-                    .agg({'ripening_reduced': 'mean'})  # 10일 동안 임실률감소 확률값 계산
-
-        data = []
-        for k, v in prob_df['ripening_reduced'].to_dict().items():
-            data.append({
-                'doy_range': (k*period - period + 1, min(k*period, 366)),
-                'prob': v
-            })
-        ret.append({
-            'type': 'negative',
-            'name': '임실감소',
-            'data': data,
-            'ref': 'tasselling_range'
-        })
-
-        return ret
-
-    @property
     def schedules(self):
         ret = super().schedules
 
@@ -100,4 +78,35 @@ class CornModel(BaseCropModel):
                 'text': ''
             }
         ])
+        return ret
+
+    @property
+    def warnings(self):
+        ret = super().warnings
+
+        start_doy = self.start_doy
+
+        df = self.gdd_weather_df.copy()
+        silking = self.get_event_end_doy(start_doy, self.silking_gdd)  # 출사(암술)
+        silking_range = [silking - 5, silking + 9]
+        tasselling_range = [
+            max(start_doy, silking_range[0] - 7),
+            silking_range[1] - 6
+        ]  # 출웅(수술)
+
+        # 최고기온 35도 초과에서 임실률 감소
+        danger_temperature = 35
+        ripening_reduced = \
+            (df.loc[tasselling_range[0]: tasselling_range[1],
+                    'tmax'] > danger_temperature).sum() > 0
+
+        if ripening_reduced:
+            ret.append({
+                'title': '수확량 감소',
+                'type': '임실률 감소 주의',
+                'ref': f"""
+                    출웅기 중 {danger_temperature}℃ 초과 온도에 노출되었습니다.
+                    임실률이 감소할 수 있습니다."""
+            })
+
         return ret
