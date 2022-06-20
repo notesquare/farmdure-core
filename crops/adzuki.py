@@ -21,7 +21,7 @@ class AdzukiModel(BaseCropModel):
 
     # 재배관련 - warnings
     high_extrema_temperature = 30
-    high_extrema_exposure_days = 5
+    high_extrema_exposure_days = 15
     low_extrema_temperature = 16
     low_extrema_exposure_days = 5
 

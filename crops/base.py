@@ -217,9 +217,10 @@ class BaseCropModel:
                         [group.index[0], group.index[-1]]
                     )
             for high_extrema_doy_range in high_extrema_exposure_doy_ranges:
-                is_intersected = min(end_doy, high_extrema_doy_range[1]) \
-                    > max(start_doy, high_extrema_doy_range[0])
-                if is_intersected:
+                intersected_days = min(end_doy, high_extrema_doy_range[1]) \
+                    - max(start_doy, high_extrema_doy_range[0])
+
+                if intersected_days >= self.high_extrema_exposure_days:
                     ret.append({
                         'title': '재배가능성 낮음',
                         'type': '고온해 위험',
@@ -249,9 +250,9 @@ class BaseCropModel:
                         [group.index[0], group.index[-1]]
                     )
             for low_extrema_doy_range in low_extrema_exposure_doy_ranges:
-                is_intersected = min(end_doy, low_extrema_doy_range[1]) \
-                    > max(start_doy, low_extrema_doy_range[0])
-                if is_intersected:
+                intersected_days = min(end_doy, low_extrema_doy_range[1]) \
+                    - max(start_doy, low_extrema_doy_range[0])
+                if intersected_days >= self.low_extrema_exposure_days:
                     ret.append({
                         'title': '재배가능성 낮음',
                         'type': '동해 위험',
