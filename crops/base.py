@@ -23,6 +23,7 @@ class BaseCropModel:
     def set_weather_data(self, weather_df):
         self.weather_df = weather_df
         self.gdd_weather_df = self.get_gdd_weather_df()
+        self.set_start_doy(self.start_doy)
 
     def update_gdd_method(self, method):
         should_update = self.gdd_method != method
