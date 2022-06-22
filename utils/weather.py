@@ -9,10 +9,7 @@ OBS_DATA_FP = Path('/obs_data') / 'doy_20years.nc'
 SQM_DATA_PATH = Path('/sqm_data')
 
 
-def get_weather_df(csv_fp=None):
-    if csv_fp is None:
-        csv_fp = Path('../../../assets') / 'sample.csv'
-
+def get_weather_df(csv_fp):
     raw_df = pd.read_csv(csv_fp,
                          encoding='utf-8')
 
