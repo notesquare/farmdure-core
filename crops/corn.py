@@ -37,9 +37,6 @@ class CornModel(BaseCropModel):
         start_doy = self.start_doy  # 파종기
         silking = self.get_event_end_doy(start_doy, self.silking_gdd)  # 출사(암술)
         silking_range = [silking - 5, silking + 9]
-        tasselling_range = [
-            silking_range[0] - 7, silking_range[1] - 6
-        ]  # 출웅(수술)
         harvest = self.get_event_end_doy(start_doy, self.harvest_gdd)  # 수확
         harvest_range = [harvest - 3, harvest + 7]
 
@@ -47,10 +44,6 @@ class CornModel(BaseCropModel):
             {'type': 'sow', 'name': '파종', 'data': start_doy},
             {'type': 'silking_range', 'name': '출사', 'data': silking_range},
             {'type': 'harvest_range', 'name': '수확', 'data': harvest_range},
-            {
-                'type': 'tasselling_range', 'name': '출웅',
-                'data': tasselling_range, 'hidden': True
-            },
         ]
         ret.extend(dedicated_events)
         return ret

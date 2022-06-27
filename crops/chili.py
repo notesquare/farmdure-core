@@ -37,14 +37,6 @@ class ChiliModel(BaseCropModel):
 
         # events 계산
         start_doy = self.start_doy  # 정식기
-        bloom_range = [
-            self.get_event_end_doy(start_doy, gdd)
-            for gdd in self.bloom_gdd_range
-        ]
-        before_bloom_range = [
-            bloom_range[0] - self.doy_range_before_bloom[1],
-            bloom_range[1] - self.doy_range_before_bloom[0]
-        ]
         green_chili_harvest_range = [
             self.get_event_end_doy(start_doy, gdd)
             for gdd in self.green_chili_harvest_gdd_range
@@ -74,11 +66,7 @@ class ChiliModel(BaseCropModel):
             {
                 'type': 'harvest_range', 'name': '붉은고추 수확',
                 'data': red_chili_harvest_range
-            },
-            {
-                'type': 'before_bloom_range', 'name': '',
-                'data': before_bloom_range, 'hidden': True
-            },
+            }
         ]
         ret.extend(dedicated_events)
         return ret

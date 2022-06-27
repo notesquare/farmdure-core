@@ -42,14 +42,6 @@ class PotatoModel(BaseCropModel):
         harvest = self.get_event_end_doy(start_doy, self.harvest_gdd)
         harvest_range = [harvest - 3, harvest + 7]
 
-        # 줄기덩이 비대기
-        potato_growth_start_doy = transplant_range[1] + 30  # 정식 30 일 후
-        potato_growth_end_doy = harvest_range[0] - 10  # 수확 10 일전
-        potato_growth_range = [
-            min(potato_growth_start_doy, potato_growth_end_doy),
-            potato_growth_end_doy  # 비대기 ~ 수확까지 최소 10일은 여유가 있도록 함
-        ]
-
         # 한계값으로 clipping
         if transplant_range[1] - transplant_range[0] \
                 > self.transplant_max_doy_range:
@@ -62,11 +54,7 @@ class PotatoModel(BaseCropModel):
                 'type': 'transplant_range', 'name': '정식',
                 'data': transplant_range
             },
-            {'type': 'harvest_range', 'name': '수확', 'data': harvest_range},
-            {
-                'type': 'potato_growth_range', 'name': '비대기',
-                'data': potato_growth_range, 'hidden': True
-            }
+            {'type': 'harvest_range', 'name': '수확', 'data': harvest_range}
         ]
         ret.extend(dedicated_events)
         return ret

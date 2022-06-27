@@ -54,20 +54,13 @@ class OnionModel(BaseCropModel):
         if harvest_range[1] - harvest_range[0] > self.harvest_max_doy_range:
             harvest_range[1] = harvest_range[0] + self.harvest_max_doy_range
 
-        # clipping된 수확기 기준으로 구비대기 설정
-        onion_develop_range = [harvest_range[0] - 40, harvest_range[1] - 40]
-
         dedicated_events = [
             {'type': 'sow', 'name': '파종', 'data': start_doy},
             {
                 'type': 'transplant_range', 'name': '정식',
                 'data': transplant_range
             },
-            {'type': 'harvest_range', 'name': '수확', 'data': harvest_range},
-            {
-                'type': 'onion_develop_range', 'name': '구비대기',
-                'data': onion_develop_range, 'hidden': True
-            }
+            {'type': 'harvest_range', 'name': '수확', 'data': harvest_range}
         ]
         ret.extend(dedicated_events)
         return ret

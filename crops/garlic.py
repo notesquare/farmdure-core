@@ -35,18 +35,10 @@ class GarlicModel(BaseCropModel):
         start_doy = self.start_doy  # 파종기
         harvest = self.get_event_end_doy(start_doy, self.harvest_gdd)
         harvest_range = [harvest - 3, harvest + 7]
-        garlic_develop_range = [
-            max(start_doy, harvest_range[0] - 120),
-            max(start_doy, harvest_range[0] - 120) + 60
-        ]
 
         dedicated_events = [
             {'type': 'sow', 'name': '파종', 'data': start_doy},
             {'type': 'harvest_range', 'name': '수확', 'data': harvest_range},
-            {
-                'type': 'garlic_develop_range', 'name': '쪽분화기',
-                'data': garlic_develop_range, 'hidden': True
-            }
         ]
         ret.extend(dedicated_events)
         return ret
