@@ -6,6 +6,8 @@ class RadishModel(BaseCropModel):
     _type = 'radish'
     color = '#5f5442'
     key = 'radish'
+    division = 'horticultural'
+    display_order = 15
 
     # 기본값
     default_start_doy = 30  # 파종

@@ -6,6 +6,8 @@ class BarleyModel(BaseCropModel):
     _type = 'barley'
     color = '#d0ab4a'
     key = 'barley'
+    division = 'agricultural'
+    display_order = 3
 
     # 기본값
     default_start_doy = 284  # 파종

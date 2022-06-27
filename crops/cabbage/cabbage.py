@@ -1,9 +1,11 @@
+from xml.sax.handler import property_encoding
 from ..base import BaseCropModel
 
 
 class CabbageModel(BaseCropModel):
     name = '배추'
     _type = 'cabbage'
+    division = 'horticultural'
 
     # 재배관련 - warnings
     # 1. 한계온도 & 노출일수
@@ -13,6 +15,39 @@ class CabbageModel(BaseCropModel):
     low_extrema_exposure_days = 5
 
     # 2. 수확은 정식에서부터 45~75일 사이에 위치
+
+    @property
+    def schedules(self):
+        ret = super().schedules
+
+        start_doy = self.start_doy
+
+        # 투비 시기
+        fertilize1 = start_doy + 15
+        fertilize2 = start_doy + 30
+        fertilize3 = start_doy + 45
+
+        ret.extend([
+            {
+                'type': 'fertilize',
+                'name': '추비 1차',
+                'data': fertilize1,
+                'text': ''
+            },
+            {
+                'type': 'fertilize',
+                'name': '추비 2차',
+                'data': fertilize2,
+                'text': ''
+            },
+            {
+                'type': 'fertilize',
+                'name': '추비 3차',
+                'data': fertilize3,
+                'text': ''
+            }
+        ])
+        return ret
 
     @property
     def warnings(self):

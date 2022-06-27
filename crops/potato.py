@@ -6,6 +6,8 @@ class PotatoModel(BaseCropModel):
     _type = 'potato'
     color = '#ca934f'
     key = 'potato'
+    division = 'agricultural'
+    display_order = 6
 
     # 기본값
     default_start_doy = 65  # 파종

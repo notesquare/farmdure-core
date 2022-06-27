@@ -6,6 +6,8 @@ class BeanModel(BaseCropModel):
     _type = 'bean'
     color = '#3aa584'
     key = 'bean'
+    division = 'agricultural'
+    display_order = 4
 
     # 기본값
     default_start_doy = 172

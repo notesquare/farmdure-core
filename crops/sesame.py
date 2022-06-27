@@ -6,6 +6,7 @@ class SesameModel(BaseCropModel):
     _type = 'sesame'
     color = '#a27d5a'
     key = 'sesame'
+    division = 'functional'
 
     # 기본값
     default_start_doy = 126  # 파종

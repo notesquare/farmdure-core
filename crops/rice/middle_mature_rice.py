@@ -5,6 +5,7 @@ class MiddleMatureRiceModel(RiceModel):
     name = '중생종 벼'
     _type = 'rice'
     key = 'middleMatureRice'
+    display_order = 1
 
     # 기본값
     default_start_doy = 148
@@ -14,8 +15,8 @@ class MiddleMatureRiceModel(RiceModel):
 
     # 재배관련 - hyperparameter
     heading_gdd_range = [1330, 1510]  # 출수
-    growth_gdd = 2260  # 생육 완료
-    harvest_gdd_range = [2260, 2340]  # 수확
+    growth_gdd = 2550  # 생육 완료
+    harvest_gdd_range = [2500, 2600]  # 수확
 
     # 한계값
     heading_max_doy_range = 20

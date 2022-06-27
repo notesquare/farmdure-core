@@ -1,3 +1,4 @@
+from tracemalloc import start
 from .cabbage import CabbageModel
 
 
@@ -6,6 +7,7 @@ class AutumnCabbageModel(CabbageModel):
     _type = 'cabbage'
     color = '#205a1d'
     key = 'autumnCabbage'
+    display_order = 14
 
     # 기본값
     default_start_doy = 245

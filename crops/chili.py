@@ -6,6 +6,8 @@ class ChiliModel(BaseCropModel):
     _type = 'chili'
     color = '#da2128'
     key = 'chili'
+    division = 'horticultural'
+    display_order = 10
 
     # 기본값
     default_start_doy = 106  # 정식
@@ -85,6 +87,10 @@ class ChiliModel(BaseCropModel):
             self.get_event_end_doy(start_doy, gdd)
             for gdd in self.red_chili_harvest_gdd_range
         ]
+        fertilize_range0 = [
+            start_doy - 21, start_doy - 14
+        ]
+        fertilize0 = start_doy - 7
         fertilize_range1 = [
             start_doy + 25, start_doy + 30
         ]  # 정식 25~30 일 후
@@ -111,6 +117,18 @@ class ChiliModel(BaseCropModel):
                 'name': '파종',
                 'data': start_doy - 65,
                 'text': ''
+            },
+            {
+                'type': 'fertilize_range',
+                'name': '기비',
+                'data': fertilize_range0,
+                'text': '흙갈이 하기 2~3주 전 석회, 붕소 비료를 투여'
+            },
+            {
+                'type': 'fertilize',
+                'name': '기비',
+                'data': fertilize0,
+                'text': '이랑 만들기 7일 전 화학비료 투여'
             },
             {
                 'type': 'transplant',

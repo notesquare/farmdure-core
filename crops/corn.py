@@ -6,19 +6,21 @@ class CornModel(BaseCropModel):
     _type = 'corn'
     color = '#fed55c'
     key = 'corn'
+    division = 'agricultural'
+    display_order = 7
 
     # 기본값
     default_start_doy = 96  # 파종
 
     # 재배관련 - parameter
-    base_temperature = 10
+    base_temperature = 5
     max_dev_temperature = 45
     allow_multiple_cropping = True
 
     # 재배관련 - hyperparameter
     silking_gdd = 1049  # 출사
-    growth_gdd = 1747  # 생육 완료
-    harvest_gdd = 1747  # 수확
+    growth_gdd = 1400  # 생육 완료
+    harvest_gdd = 1400  # 수확
 
     # 재배관련 - warnings
     # 1. 한계온도 & 노출일수
@@ -57,12 +59,35 @@ class CornModel(BaseCropModel):
         harvest = self.get_event_end_doy(start_doy, self.harvest_gdd)  # 수확
         harvest_range = [harvest - 3, harvest + 7]
 
+        # 투비 시기
+        fertilize1_range = [start_doy - 15, start_doy - 30]  # 기비
+        fertilize2_range = [start_doy + 30, start_doy + 40]  # 추비 1회
+        fertilize3 = start_doy + 70  # 추비 2회
+
         ret.extend([
+            {
+                'type': 'fertilize1_range',
+                'name': '기비',
+                'data': fertilize1_range,
+                'text': ''
+            },
             {
                 'type': 'sow',
                 'name': '파종',
                 'data': start_doy,
                 'text': ''
+            },
+            {
+                'type': 'fertilize2_range',
+                'name': '추비 1차',
+                'data': fertilize2_range,
+                'text': '잎이 7~8장, 키가 성인 무릎정도 자랐을 때'
+            },
+            {
+                'type': 'fertilize3',
+                'name': '추비 2차',
+                'data': fertilize3,
+                'text': '옥수수 수꽃이 나왔을 때'
             },
             {
                 'type': 'harvest_range',

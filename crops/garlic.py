@@ -6,6 +6,8 @@ class GarlicModel(BaseCropModel):
     _type = 'garlic'
     color = '#b67982'
     key = 'garlic'
+    division = 'horticultural'
+    display_order = 11
 
     # 기본값
     default_start_doy = 269

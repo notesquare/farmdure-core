@@ -6,6 +6,7 @@ class SpringCabbageModel(CabbageModel):
     _type = 'cabbage'
     color = '#4cb848'
     key = 'springCabbage'
+    display_order = 13
 
     # 기본값
     default_start_doy = 51

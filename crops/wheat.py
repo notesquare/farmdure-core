@@ -6,6 +6,8 @@ class WheatModel(BaseCropModel):
     _type = 'wheat'
     color = '#cb7a16'
     key = 'wheat'
+    division = 'agricultural'
+    display_order = 8
 
     # 기본값
     default_start_doy = 284  # 파종
