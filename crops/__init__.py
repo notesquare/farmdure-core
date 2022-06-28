@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from .rice import (
     MiddleLateMatureRiceModel,
     MiddleMatureRiceModel,
@@ -40,6 +42,36 @@ CropModels = [
     SesameModel,
     BeanModel,
 ]
+
+CropModelsByCategory = OrderedDict([
+    ('식량작물', OrderedDict([
+        ('벼', [
+            EarlyMatureRiceModel,
+            MiddleMatureRiceModel,
+            MiddleLateMatureRiceModel
+        ]),
+        ('보리', [BarleyModel]),
+        ('콩', [BeanModel]),
+        ('고구마', [SweetPotatoModel]),
+        ('감자', [PotatoModel]),
+        ('옥수수', [CornModel]),
+        ('밀', [WheatModel]),
+        ('팥', [AdzukiModel]),
+    ])),
+    ('원예작물', OrderedDict([
+        ('고추', [ChiliModel]),
+        ('마늘', [GarlicModel]),
+        ('양파', [OnionModel]),
+        ('배추', [
+            SpringCabbageModel,
+            AutumnCabbageModel
+        ]),
+        ('무', [RadishModel]),
+    ])),
+    ('특용작물', OrderedDict([
+        ('참깨', [SesameModel])
+    ]))
+])
 
 cropNameByType = {
     'rice': '벼',
