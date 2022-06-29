@@ -88,3 +88,62 @@ class EarlyMatureRiceModel(RiceModel):
             }
         ])
         return ret
+
+    @property
+    def water_level(self):
+        start_doy = self.start_doy
+        heading = self.get_event_end_doy(start_doy, self.heading_gdd)
+        heading_range = [
+            max(start_doy, heading - 5), heading + 9
+        ]
+        harvest = self.get_event_end_doy(start_doy, self.harvest_gdd)
+        harvest_range = [harvest - 3, harvest + 7]
+
+        data = [
+            {
+                'doyRange': [start_doy - 5, start_doy],
+                'name': '이앙전 물대기', 'waterLevels': [5, 5]
+            },
+            {
+                'doyRange': [start_doy, start_doy + 3],
+                'name': '이앙기', 'waterLevels': [2, 2]
+            },
+            {
+                'doyRange': [start_doy + 3, start_doy + 7],
+                'name': '활착기', 'waterLevels': [7, 7]
+            },
+            {
+                'doyRange': [start_doy + 7, start_doy + 12],
+                'name': '분얼성기', 'waterLevels': [2, 2]
+            },
+            {
+                'doyRange': [heading_range[0] - 30, heading_range[0] - 20],
+                'name': '중간물떼기', 'waterLevels': [0, 0]
+            },
+            {
+                'doyRange': [heading_range[0] - 20, heading_range[0]],
+                'name': '배동받이때(유수형성기)', 'waterLevels': [2, 2]
+            },
+            {
+                'doyRange': [heading_range[0], heading_range[1] + 10],
+                'name': '출수기', 'waterLevels': [7, 7]
+            },
+            {
+                'doyRange': [heading_range[1] + 10, heading_range[1] + 35],
+                'name': '등숙기', 'waterLevels': [2, 3]
+            },
+            {
+                'doyRange': [heading_range[1] + 35, harvest_range[0]],
+                'name': '완전물떼기', 'waterLevels': [0, 0]
+            },
+        ]
+
+        ret = []
+        for datum in data:
+            doys = datum.get('doyRange')
+            levs = datum.get('waterLevels')
+            ret.extend([
+                {'doy': doy, 'waterLevel': level}
+                for doy, level in zip(doys, levs)
+            ])
+        return ret
