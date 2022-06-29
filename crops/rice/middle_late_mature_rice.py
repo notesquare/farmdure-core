@@ -112,7 +112,7 @@ class MiddleLateMatureRiceModel(RiceModel):
             },
             {
                 'doyRange': [heading_range[1] + 10, heading_range[1] + 35],
-                'name': '등숙기', 'waterLevels': [2, 3]
+                'name': '등숙기', 'waterLevels': [2, 2]
             },
             {
                 'doyRange': [heading_range[1] + 35, harvest_range[0]],

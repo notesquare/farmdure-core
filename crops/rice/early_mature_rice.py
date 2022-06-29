@@ -92,12 +92,20 @@ class EarlyMatureRiceModel(RiceModel):
     @property
     def water_level(self):
         start_doy = self.start_doy
-        heading = self.get_event_end_doy(start_doy, self.heading_gdd)
         heading_range = [
-            max(start_doy, heading - 5), heading + 9
+            self.get_event_end_doy(start_doy, gdd)
+            for gdd in self.heading_gdd_range
         ]
-        harvest = self.get_event_end_doy(start_doy, self.harvest_gdd)
-        harvest_range = [harvest - 3, harvest + 7]
+        harvest_range = [
+            self.get_event_end_doy(start_doy, gdd)
+            for gdd in self.harvest_gdd_range
+        ]
+
+        # 한계값으로 clipping
+        if heading_range[1] - heading_range[0] > self.heading_max_doy_range:
+            heading_range[1] = heading_range[0] + self.heading_max_doy_range
+        if harvest_range[1] - harvest_range[0] > self.harvest_max_doy_range:
+            harvest_range[1] = harvest_range[0] + self.harvest_max_doy_range
 
         data = [
             {
@@ -130,7 +138,7 @@ class EarlyMatureRiceModel(RiceModel):
             },
             {
                 'doyRange': [heading_range[1] + 10, heading_range[1] + 35],
-                'name': '등숙기', 'waterLevels': [2, 3]
+                'name': '등숙기', 'waterLevels': [2, 2]
             },
             {
                 'doyRange': [heading_range[1] + 35, harvest_range[0]],
