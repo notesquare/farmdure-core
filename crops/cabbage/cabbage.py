@@ -1,4 +1,3 @@
-from xml.sax.handler import property_encoding
 from ..base import BaseCropModel
 
 
@@ -22,11 +21,18 @@ class CabbageModel(BaseCropModel):
         start_doy = self.start_doy
 
         # 투비 시기
+        fertilize0 = start_doy - 7
         fertilize1 = start_doy + 15
         fertilize2 = start_doy + 30
         fertilize3 = start_doy + 45
 
         ret.extend([
+            {
+                'type': 'fertilize',
+                'name': '기비',
+                'data': fertilize0,
+                'text': ''
+            },
             {
                 'type': 'fertilize',
                 'name': '추비 1차',
