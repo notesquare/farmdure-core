@@ -6,8 +6,6 @@ class ChiliModel(BaseCropModel):
     _type = 'chili'
     color = '#da2128'
     key = 'chili'
-    division = 'horticultural'
-    display_order = 10
 
     # 기본값
     default_start_doy = 106  # 정식

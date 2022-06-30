@@ -6,8 +6,6 @@ class CornModel(BaseCropModel):
     _type = 'corn'
     color = '#fed55c'
     key = 'corn'
-    division = 'agricultural'
-    display_order = 7
 
     # 기본값
     default_start_doy = 96  # 파종

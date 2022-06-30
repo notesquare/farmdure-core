@@ -6,9 +6,6 @@ class AdzukiModel(BaseCropModel):
     _type = 'adzuki'
     color = '#bb7178'
     key = 'adzuki'
-    division = 'agricultural'
-    display_order = 9
-    display_order = 16
 
     # 기본값
     default_start_doy = 146

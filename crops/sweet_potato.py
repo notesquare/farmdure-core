@@ -7,8 +7,6 @@ class SweetPotatoModel(BaseCropModel):
     color = '#904e50'
     key = 'sweetPotato'
     gdd_method = 'm3'
-    division = 'agricultural'
-    display_order = 5
 
     # 기본값
     default_start_doy = 131  # 삽식

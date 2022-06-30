@@ -5,7 +5,6 @@ from ..base import BaseCropModel
 class CabbageModel(BaseCropModel):
     name = '배추'
     _type = 'cabbage'
-    division = 'horticultural'
 
     # 재배관련 - warnings
     # 1. 한계온도 & 노출일수

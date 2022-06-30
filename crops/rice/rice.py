@@ -6,7 +6,6 @@ class RiceModel(BaseCropModel):
     _type = 'rice'
     color = '#d77c29'
     gdd_method = 'm3'
-    division = 'agricultural'
 
     max_dev_temperature = 40
 

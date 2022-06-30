@@ -6,8 +6,6 @@ class OnionModel(BaseCropModel):
     _type = 'onion'
     color = '#aed477'
     key = 'onion'
-    division = 'horticultural'
-    display_order = 12
 
     # 기본값
     default_start_doy = 238

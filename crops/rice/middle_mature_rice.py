@@ -107,6 +107,28 @@ class MiddleMatureRiceModel(RiceModel):
         if harvest_range[1] - harvest_range[0] > self.harvest_max_doy_range:
             harvest_range[1] = harvest_range[0] + self.harvest_max_doy_range
 
+        irrigation_repeat_start = heading_range[1] + 10
+        irrigation_repeat_end = harvest_range[0] - 7
+
+        ripening_water_doys1 = range(
+            irrigation_repeat_start,
+            irrigation_repeat_end+1, 3
+        )
+        ripening_water_doys2 = range(
+            irrigation_repeat_start+3,
+            irrigation_repeat_end+3+1, 3
+        )
+        ripening_water_doys = []
+        for d1, d2 in zip(
+            ripening_water_doys1,
+            ripening_water_doys2
+        ):
+            if (d1 >= irrigation_repeat_end or
+                    d2 >= irrigation_repeat_end):
+                break
+            ripening_water_doys.extend([d1, d2])
+        ripening_water_levels = [2, 0] * len(ripening_water_doys)
+
         data = [
             {
                 'doyRange': [start_doy - 5, start_doy],
@@ -125,7 +147,7 @@ class MiddleMatureRiceModel(RiceModel):
                 'name': '분얼성기', 'waterLevels': [2, 2]
             },
             {
-                'doyRange': [heading_range[0] - 40, heading_range[0] - 30],
+                'doyRange': [start_doy + 16, heading_range[0] - 30],
                 'name': '중간물떼기', 'waterLevels': [0, 0]
             },
             {
@@ -137,12 +159,12 @@ class MiddleMatureRiceModel(RiceModel):
                 'name': '출수기', 'waterLevels': [7, 7]
             },
             {
-                'doyRange': [heading_range[1] + 10, heading_range[1] + 35],
-                'name': '등숙기', 'waterLevels': [2, 2]
+                'doyRange': ripening_water_doys,
+                'name': '등숙기', 'waterLevels': ripening_water_levels
             },
             {
-                'doyRange': [heading_range[1] + 35, harvest_range[0]],
-                'name': '완전물떼기', 'waterLevels': [0, 0]
+                'doyRange': [harvest_range[0] - 7, harvest_range[0]],
+                'name': '완전물떼기', 'waterLevels': [2, 0]
             },
         ]
 
