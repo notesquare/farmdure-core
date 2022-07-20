@@ -14,11 +14,8 @@ class SweetPotatoModel(BaseCropModel):
     # 재배관련 - parameter
     base_temperature = 15.5
     max_dev_temperature = 38
-    allow_multiple_cropping = True
-
-    # 재배관련 - hyperparameter
     growth_gdd = 1462  # 생육 완료
-    harvest_gdd = 1462  # 수확
+    allow_multiple_cropping = True
 
     # 재배관련 - warnings
     high_extrema_temperature = 32.2
@@ -26,50 +23,35 @@ class SweetPotatoModel(BaseCropModel):
     low_extrema_temperature = 15
     low_extrema_exposure_days = 30
 
-    @property
-    def events(self):
-        ret = super().events
-
-        # events 계산
-        start_doy = self.start_doy  # 삽식
-        harvest = self.get_event_end_doy(start_doy, self.harvest_gdd)
-        harvest_range = [harvest - 3, harvest + 7]
-
-        dedicated_events = [
-            {'type': 'sow', 'name': '파종', 'data': start_doy - 60},  # 삽식 60일 전
-            {'type': 'transplant', 'name': '삽식', 'data': start_doy},
-            {'type': 'harvest_range', 'name': '수확', 'data': harvest_range}
-        ]
-        ret.extend(dedicated_events)
-        return ret
-
-    @property
-    def schedules(self):
-        ret = super().schedules
-
-        # schedules 계산
-        start_doy = self.start_doy  # 삽식
-        harvest = self.get_event_end_doy(start_doy, self.harvest_gdd)
-        harvest_range = [harvest - 3, harvest + 7]
-
-        ret.extend([
-            {
-                'type': 'sow',
-                'name': '파종',
-                'data': start_doy - 60,
-                'text': ''
-            },
-            {
-                'type': 'transplant',
-                'name': '삽식',
-                'data': start_doy,
-                'text': ''
-            },
-            {
-                'type': 'harvest_range',
-                'name': '수확',
-                'data': harvest_range,
-                'text': ''
-            },
-        ])
-        return ret
+    # 재배관련 - hyperparameter
+    first_priority_hyperparams = [
+        {
+            'method': 'GDD',
+            'type': 'transplant', 'value': 0
+        },
+    ]
+    gdd_hyperparams = [
+        {
+            'type': 'transplant', 'name': '삽식',
+            'value': 0,
+            'text': '',
+            'expose_to': ['events', 'schedules']
+        },
+        {
+            'type': 'harvest_range', 'name': '수확',
+            'value': 1462,
+            'max_period': 10,
+            'text': '',
+            'expose_to': ['events', 'schedules']
+        },
+    ]
+    doy_hyperparams = [
+        {
+            'type': 'sow', 'name': '파종',
+            'ref': ['transplant'],
+            'value': [-60],
+            'text': '',
+            'expose_to': ['events', 'schedules']
+        },
+    ]
+    warning_hyperparams = []

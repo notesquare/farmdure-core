@@ -97,6 +97,9 @@ class BaseCropModel:
         if self.weather_df is None:
             raise ValueError('weather data not prepared.')
 
+        if gdd == 0:
+            return event_base_doy
+
         event_base_doy = max(event_base_doy, 2)
         df = self.gdd_weather_df
         event_doy = (
@@ -113,6 +116,7 @@ class BaseCropModel:
 
         df = self.gdd_weather_df
         event_doy = (
+            # TODO
             df.loc[event_base_doy: 0: -1, 'tavg_dev'].cumsum() >=
             gdd
         ).idxmax()
@@ -125,20 +129,227 @@ class BaseCropModel:
               start_doy <= self.max_start_doy
         return ret
 
+    def calculate_first_priority_params(self):
+        ret = {}
+        # 우선 계산 필요한 event들 계산 => ret에 저장
+        for param in self.first_priority_hyperparams:
+            if param['method'] == 'GDD':
+                event = self.calculate_gdd_hyperparam(param)
+                ret.update({event['type']: event['data']})
+            elif param['method'] == 'DOY':
+                # NOTE: "ret" will be mutated in loop,
+                # "calculate_doy_hyperparam" method dosn't mutates "ret"
+                event = self.calculate_doy_hyperparam(param, ret)
+                ret.update({event['type']: event['data']})
+                pass
+            else:
+                raise NotImplementedError('not implemented')
+        return ret
+
+    def calculate_gdd_hyperparam(self, param):
+        start_doy = self.start_doy
+
+        # get_event
+        max_period = param.get('max_period')
+        if isinstance(param['value'], list):
+            event_data = [
+                self.get_event_end_doy(start_doy, val)
+                for val in param['value']
+            ]
+            if max_period is not None:
+                event_data[1] = event_data[0] + max_period \
+                    if event_data[1] - event_data[0] > max_period \
+                    else event_data[1]
+
+        else:
+            event_data = self.get_event_end_doy(start_doy, param['value'])
+            if max_period is not None:
+                event_data = [
+                    event_data - (max_period // 2 - 2),
+                    event_data + (max_period // 2 + 2)
+                ]
+
+        event = {
+            'type': param.get('type'),
+            'name': param.get('name', ''),
+            'data': event_data,
+            'text': param.get('text', '')
+        }
+        return event
+
+    def calculate_doy_hyperparam(self, param, ref_data):
+        event_data = []
+
+        n_refs = len(param['ref'])
+        for ref, index, val in zip(
+            param['ref'],
+            param.get('index', [None] * n_refs),
+            param['value']
+        ):
+            _ref_data = ref_data.get(ref)
+            if _ref_data is None:
+                raise ValueError('Failed to get preceding calculation results')
+
+            ret_doy = _ref_data + val if index is None \
+                else _ref_data[index] + val
+            event_data.append(ret_doy)
+
+        event_data = event_data[0] if len(event_data) == 1 else event_data
+        event = {
+            'type': param.get('type'),
+            'name': param.get('name', ''),
+            'data': event_data,
+            'text': param.get('text', '')
+        }
+        return event
+
+    def get_extreme_temperature_warnings(self, param):
+        start_doy = self.start_doy
+        end_doy = self.end_doy
+        df = self.gdd_weather_df.copy()
+
+        high_extrema_temperature = param['high_extrema_temperature']
+        high_extrema_exposure_days = param['high_extrema_exposure_days']
+        low_extrema_temperature = param['low_extrema_temperature']
+        low_extrema_exposure_days = param['low_extrema_exposure_days']
+
+        # 1. 한계온도 & 노출일수
+        # 생육한계 최고온도 & 노출일수
+        df['high_extrema_exposure'] = \
+            df['tmax'] > high_extrema_temperature
+        df['high_extrema_exposure_group'] = \
+            df['high_extrema_exposure'].diff(1).cumsum()
+
+        high_extrema_exposure_doy_ranges = []
+        for idx, group in df.groupby('high_extrema_exposure_group'):
+            high_extrema_col = group['high_extrema_exposure']
+
+            if (high_extrema_col.all() and high_extrema_col.count()
+                    >= high_extrema_exposure_days):
+                high_extrema_exposure_doy_ranges.append(
+                    [group.index[0], group.index[-1]]
+                )
+        for high_extrema_doy_range in high_extrema_exposure_doy_ranges:
+            intersected_days = min(end_doy, high_extrema_doy_range[1]) \
+                - max(start_doy, high_extrema_doy_range[0])
+
+            if intersected_days >= high_extrema_exposure_days:
+                return [{
+                    'title': '재배가능성 낮음',
+                    'type': '고온해 위험',
+                    'message': f"""생육한계 최고온도 {
+                        high_extrema_temperature
+                    }℃ 초과의 온도에 연속 {
+                        high_extrema_exposure_days
+                    }일 이상 노출되었습니다."""
+                }]
+
+        # 생육한계 최저온도 & 노출일수
+        df['low_extrema_exposure'] = \
+            df['tmin'] < low_extrema_temperature
+        df['low_extrema_exposure_group'] = \
+            df['low_extrema_exposure'].diff(1).cumsum()
+
+        low_extrema_exposure_doy_ranges = []
+        for idx, group in df.groupby('low_extrema_exposure_group'):
+            low_extrema_col = group['low_extrema_exposure']
+
+            if (low_extrema_col.all() and low_extrema_col.count()
+                    >= low_extrema_exposure_days):
+
+                low_extrema_exposure_doy_ranges.append(
+                    [group.index[0], group.index[-1]]
+                )
+        for low_extrema_doy_range in low_extrema_exposure_doy_ranges:
+            intersected_days = min(end_doy, low_extrema_doy_range[1]) \
+                - max(start_doy, low_extrema_doy_range[0])
+            if intersected_days >= low_extrema_exposure_days:
+                return [{
+                    'title': '재배가능성 낮음',
+                    'type': '동해 위험',
+                    'message': f"""생육한계 최저온도 {
+                        low_extrema_temperature
+                    }℃ 미만의 온도에 연속 {
+                        low_extrema_exposure_days
+                    }일 이상 노출되었습니다."""
+                }]
+        return []
+
+    def get_milestone_temperature_warnings(self, param):
+        df = self.gdd_weather_df.copy()
+        ref_data = self.calculate_first_priority_params()
+
+        doys = self.calculate_doy_hyperparam(
+            param['milestone'],
+            ref_data
+        )['data']
+        cond = param['condition']
+
+        variable = cond['variable']
+        danger_temperature = cond['temperature']
+        operator = cond['operator']
+
+        if operator == 'ge':
+            liability = \
+                (df.loc[doys[0]: doys[1], variable] >=
+                    danger_temperature).sum() > 0
+        elif operator == 'gt':
+            liability = \
+                (df.loc[doys[0]: doys[1], variable] >
+                    danger_temperature).sum() > 0
+        elif operator == 'eq':
+            liability = \
+                (df.loc[doys[0]: doys[1], variable] ==
+                    danger_temperature).sum() > 0
+        else:
+            raise NotImplementedError('operation not implemented')
+
+        if liability:
+            warning_data = param.get('warning_data', None)
+            return [warning_data]
+        return []
+
+    def get_milestone_length_warnings(self, param):
+        ref_data = self.calculate_first_priority_params()
+        doys = self.calculate_doy_hyperparam(
+            param['milestone'],
+            ref_data
+        )['data']
+        milestone_length = doys[1] - doys[0]
+        cond = param['condition']
+        length = cond['length']
+        operator = cond['operator']
+
+        if operator == 'gt':
+            liability = milestone_length > length
+        elif operator == 'ge':
+            liability = milestone_length >= length
+        elif operator == 'eq':
+            liability = milestone_length == length
+        elif operator == 'le':
+            liability = milestone_length <= length
+        elif operator == 'lt':
+            liability = milestone_length < length
+        else:
+            raise NotImplementedError('operation not implemented')
+
+        if liability:
+            warning_data = param.get('warning_data', None)
+            return [warning_data]
+        return []
+
     @property
     def start_doy_range(self):
         return [self.min_start_doy, self.max_start_doy]
 
     @property
-    def growths(self):
+    def growth(self):
         # 작물의 변화 일정
-        return [
-            {
-                'type': 'growth_range',
-                'name': '재배기간',
-                'data': [self.start_doy, self.end_doy]
-            }
-        ]
+        return {
+            'type': 'growth_range',
+            'name': '재배기간',
+            'data': [self.start_doy, self.end_doy]
+        }
 
     @property
     def progress(self):
@@ -167,13 +378,47 @@ class BaseCropModel:
 
     @property
     def events(self):
-        events = self.growths
+        events = [self.growth]
+        ref = self.calculate_first_priority_params()
+
+        # gdd 기반 계산이 필요한 event들 계산
+        for param in self.gdd_hyperparams:
+            if 'events' not in param['expose_to']:
+                continue
+
+            event = self.calculate_gdd_hyperparam(param)
+            events.append(event)
+
+        # doy 기반 계산이 필요한 event들 계산
+        for param in self.doy_hyperparams:
+            if 'events' not in param['expose_to']:
+                continue
+            event = self.calculate_doy_hyperparam(param, ref)
+            events.append(event)
         return events
 
     @property
     def schedules(self):
-        # 농민의 작업 일정
-        return []
+        # 작업 일정
+        schedules = []
+        ref = self.calculate_first_priority_params()
+
+        # gdd 기반 계산이 필요한 event들 계산
+        for param in self.gdd_hyperparams:
+            if 'schedules' not in param['expose_to']:
+                continue
+
+            schedule = self.calculate_gdd_hyperparam(param)
+            schedules.append(schedule)
+
+        # doy 기반 계산이 필요한 event들 계산
+        for param in self.doy_hyperparams:
+            if 'schedules' not in param['expose_to']:
+                continue
+            schedule = self.calculate_doy_hyperparam(param, ref)
+            schedules.append(schedule)
+
+        return schedules
 
     @property
     def attribute(self):
@@ -194,75 +439,21 @@ class BaseCropModel:
 
     @property
     def warnings(self):
-        ret = []
+        ret_warnings = []
 
-        start_doy = self.start_doy
-        end_doy = self.end_doy
+        for param in self.warning_hyperparams:
+            method = param['method']
 
-        # 1. 한계온도 & 노출일수
-        # 생육한계 최고온도 & 노출일수
-        df = self.gdd_weather_df.copy()
-        if hasattr(self, 'high_extrema_temperature'):
-            df['high_extrema_exposure'] = \
-                df['tmax'] > self.high_extrema_temperature
-            df['high_extrema_exposure_group'] = \
-                df['high_extrema_exposure'].diff(1).cumsum()
+            if method == 'temperature_and_exposure':
+                _warnings = self.get_extreme_temperature_warnings(param)
+                ret_warnings.extend(_warnings)
 
-            high_extrema_exposure_doy_ranges = []
-            for idx, group in df.groupby('high_extrema_exposure_group'):
-                high_extrema_col = group['high_extrema_exposure']
+            elif method == 'milestone_and_temperature_condition':
+                _warnings = self.get_milestone_temperature_warnings(param)
+                ret_warnings.extend(_warnings)
 
-                if (high_extrema_col.all() and high_extrema_col.count()
-                        >= self.high_extrema_exposure_days):
-                    high_extrema_exposure_doy_ranges.append(
-                        [group.index[0], group.index[-1]]
-                    )
-            for high_extrema_doy_range in high_extrema_exposure_doy_ranges:
-                intersected_days = min(end_doy, high_extrema_doy_range[1]) \
-                    - max(start_doy, high_extrema_doy_range[0])
+            elif method == 'milestone_length_condition':
+                _warnings = self.get_milestone_length_warnings(param)
+                ret_warnings.extend(_warnings)
 
-                if intersected_days >= self.high_extrema_exposure_days:
-                    ret.append({
-                        'title': '재배가능성 낮음',
-                        'type': '고온해 위험',
-                        'message': f"""생육한계 최고온도 {
-                            self.high_extrema_temperature
-                        }℃ 초과의 온도에 연속 {
-                            self.high_extrema_exposure_days
-                        }일 이상 노출되었습니다."""
-                    })
-                    break
-
-        # 생육한계 최저온도 & 노출일수
-        if hasattr(self, 'low_extrema_temperature'):
-            df['low_extrema_exposure'] = \
-                df['tmin'] < self.low_extrema_temperature
-            df['low_extrema_exposure_group'] = \
-                df['low_extrema_exposure'].diff(1).cumsum()
-
-            low_extrema_exposure_doy_ranges = []
-            for idx, group in df.groupby('low_extrema_exposure_group'):
-                low_extrema_col = group['low_extrema_exposure']
-
-                if (low_extrema_col.all() and low_extrema_col.count()
-                        >= self.low_extrema_exposure_days):
-
-                    low_extrema_exposure_doy_ranges.append(
-                        [group.index[0], group.index[-1]]
-                    )
-            for low_extrema_doy_range in low_extrema_exposure_doy_ranges:
-                intersected_days = min(end_doy, low_extrema_doy_range[1]) \
-                    - max(start_doy, low_extrema_doy_range[0])
-                if intersected_days >= self.low_extrema_exposure_days:
-                    ret.append({
-                        'title': '재배가능성 낮음',
-                        'type': '동해 위험',
-                        'message': f"""생육한계 최저온도 {
-                            self.low_extrema_temperature
-                        }℃ 미만의 온도에 연속 {
-                            self.low_extrema_exposure_days
-                        }일 이상 노출되었습니다."""
-                    })
-                    break
-
-        return ret
+        return ret_warnings

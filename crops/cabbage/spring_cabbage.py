@@ -6,7 +6,6 @@ class SpringCabbageModel(CabbageModel):
     _type = 'cabbage'
     color = '#4cb848'
     key = 'springCabbage'
-    display_order = 13
 
     # 기본값
     default_start_doy = 51
@@ -14,70 +13,70 @@ class SpringCabbageModel(CabbageModel):
     # 재배관련 - parameter
     base_temperature = 5
     max_dev_temperature = 35
+    growth_gdd = 601  # 생육 완료
     allow_multiple_cropping = False
 
     # 재배관련 - hyperparameter
-    ripening_gdd_range = [370, 525]  # 결구 실제값 [370, 610]
-    growth_gdd = 601  # 생육 완료
-    harvest_gdd = 601  # 수확
+    _first_priority_hyperparams = [
+        {
+            'method': 'GDD',
+            'type': 'transplant',
+            'value': 0
+        },
+        {
+            'method': 'GDD',
+            'type': 'harvest_range',
+            'value': 601,
+            'max_period': 10,
+        },
+    ]
+    _gdd_hyperparams = [
+        {
+            'type': 'transplant', 'name': '정식',
+            'value': 0,
+            'text': '',
+            'expose_to': ['events', 'schedules']
+        },
+        {
+            'type': 'ripening_range', 'name': '결구',
+            'value': [370, 525],  # 결구 실제값 [370, 610]
+            'text': '',
+            'max_period': 30,
+            'expose_to': ['events']
+        },
+        {
+            'type': 'harvest_range', 'name': '수확',
+            'value': 601,
+            'max_period': 10,
+            'text': '',
+            'expose_to': ['events', 'schedules']
+        },
+    ]
+    _doy_hyperparams = [
+        {
+            'type': 'sow', 'name': '파종',
+            'ref': ['transplant'],
+            'value': [-30],
+            'text': '',
+            'expose_to': ['events', 'schedules']
+        },
+    ]
 
-    # 한계값
-    ripening_max_doy_range = 30
-    harvest_max_doy_range = 15
+    _warning_hyperparams = []
 
     @property
-    def events(self):
-        ret = super().events
-
-        # events 계산
-        start_doy = self.start_doy  # 정식기
-        ripening_range = [
-            self.get_event_end_doy(start_doy, gdd)
-            for gdd in self.ripening_gdd_range
-        ]
-        harvest = self.get_event_end_doy(start_doy, self.harvest_gdd)
-        harvest_range = [harvest - 3, harvest + 7]
-
-        # 한계값으로 clipping
-        if ripening_range[1] - ripening_range[0] > self.ripening_max_doy_range:
-            ripening_range[1] = ripening_range[0] + self.ripening_max_doy_range
-
-        dedicated_events = [
-            {'type': 'sow', 'name': '파종', 'data': start_doy - 30},  # 정식 30일 전
-            {'type': 'transplant', 'name': '정식', 'data': start_doy},
-            {'type': 'ripening_range', 'name': '결구', 'data': ripening_range},
-            {'type': 'harvest_range', 'name': '수확', 'data': harvest_range}
-        ]
-        ret.extend(dedicated_events)
-        return ret
+    def first_priority_hyperparams(self):
+        return super().first_priority_hyperparams \
+            + self._first_priority_hyperparams
 
     @property
-    def schedules(self):
-        ret = super().schedules
+    def gdd_hyperparams(self):
+        return super().gdd_hyperparams + self._gdd_hyperparams
 
-        # events 계산
-        start_doy = self.start_doy  # 정식기
-        harvest = self.get_event_end_doy(start_doy, self.harvest_gdd)
-        harvest_range = [harvest - 3, harvest + 7]
+    @property
+    def doy_hyperparams(self):
+        return super().doy_hyperparams + self._doy_hyperparams
 
-        ret.extend([
-            {
-                'type': 'sow',
-                'name': '파종',
-                'data': start_doy - 30,
-                'text': ''
-            },
-            {
-                'type': 'transplant',
-                'name': '정식',
-                'data': start_doy,
-                'text': ''
-            },
-            {
-                'type': 'harvest_range',
-                'name': '수확',
-                'data': harvest_range,
-                'text': ''
-            }
-        ])
-        return ret
+    @property
+    def warning_hyperparams(self):
+        return super().warning_hyperparams + self._warning_hyperparams
