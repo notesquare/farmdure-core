@@ -7,20 +7,6 @@ class RiceModel(BaseCropModel):
     color = '#d77c29'
     gdd_method = 'm3'
 
-    max_dev_temperature = 40
-
-    # 재배관련 - warnings
-    high_extrema_temperature = 40
-    high_extrema_exposure_days = 5
-    low_extrema_temperature = 12
-    low_extrema_exposure_days = 5
-
-    # 재배관련 - hyperparameter
-    first_priority_hyperparams = []
-    gdd_hyperparams = []
-    doy_hyperparams = []
-    warning_hyperparams = []
-
     @property
     def warnings(self):
         ret = super().warnings

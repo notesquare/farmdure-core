@@ -1,0 +1,1457 @@
+adzuki:
+  default_start_doy: 146
+
+  base_temperature: 5
+  max_dev_temperature: 24
+  growth_gdd: 2300
+
+  high_extrema_temperature: 30
+  high_extrema_exposure_days: 15
+  low_extrema_temperature: 16
+  low_extrema_exposure_days: 30
+
+  first_priority_hyperparams: []
+  gdd_hyperparams: [
+      {
+          type: sow, name: 파종,
+          value: 0,
+          text: '',
+          expose_to: [events, schedules]
+      },
+      {
+          type: bloom_range, name: 개화,
+          value: [850, 1240],
+          max_period: 20,
+          text: '',
+          expose_to: [events]
+      },
+      {
+          type: harvest_range, name: 수확,
+          value: 2300,
+          max_period: 10,
+          text: '',
+          expose_to: [events, schedules]
+      },
+  ]
+  doy_hyperparams: []
+  warning_hyperparams: []
+
+
+barley:
+  default_start_doy: 290
+
+  base_temperature: 0
+  max_dev_temperature: 30
+  growth_gdd: 1600
+
+  high_extrema_temperature: 30
+  high_extrema_exposure_days: 5
+  low_extrema_temperature: 3
+  low_extrema_exposure_days: 30
+
+  first_priority_hyperparams: []
+  gdd_hyperparams: [
+      {
+          type: sow, name: 파종,
+          value: 0,
+          text: '',
+          expose_to: [events, schedules]
+      },
+      {
+          type: tillering_range, name: 분얼 및 신장,
+          value: [525, 885],
+          max_period: 50,
+          text: '',
+          expose_to: [events]
+      },
+      {
+          type: heading_range, name: 출수,
+          value: [896, 1200],
+          max_period: 30,
+          text: '',
+          expose_to: [events]
+      },
+      {
+          type: ripening_range, name: 등숙,
+          value: [1200, 1600],
+          max_period: 40,
+          text: '',
+          expose_to: [events]
+      },
+      {
+          type: harvest_range, name: 수확,
+          value: [1600, 2295],
+          max_period: 40,
+          text: '',
+          expose_to: [events, schedules]
+      },
+  ]
+  doy_hyperparams: []
+  warning_hyperparams: []
+
+
+bean:
+  default_start_doy: 172
+
+  high_extrema_temperature: 35
+  high_extrema_exposure_days: 5
+  low_extrema_temperature: 20
+  low_extrema_exposure_days: 30
+
+  base_temperature: 0
+  max_dev_temperature: 35
+  growth_gdd: 2700
+
+  first_priority_hyperparams: []
+  gdd_hyperparams: [
+      {
+          type: sow, name: 파종,
+          value: 0,
+          text: '',
+          expose_to: [events, schedules]
+      },
+      {
+          type: bloom_range, name: 개화,
+          value: [450, 1840],
+          max_period: 20,
+          text: '',
+          expose_to: [events]
+      },
+      {
+          type: harvest_range, name: 수확,
+          value: 2700,
+          max_period: 10,
+          text: '',
+          expose_to: [events, schedules]
+      },
+  ]
+  doy_hyperparams: []
+  warning_hyperparams: []
+
+
+cabbage:
+  doy_hyperparams: [
+      {
+          type: fertilize, name: 기비,
+          ref: [transplant],
+          value: [-7],
+          text: '',
+          expose_to: [schedules],
+      },
+      {
+          type: fertilize, name: 추비 1차,
+          ref: [transplant],
+          value: [15],
+          text: '',
+          expose_to: [schedules],
+      },
+      {
+          type: fertilize, name: 추비 2차,
+          ref: [transplant],
+          value: [30],
+          text: '',
+          expose_to: [schedules],
+      },
+      {
+          type: fertilize, name: 추비 3차,
+          ref: [transplant],
+          value: [45],
+          text: '',
+          expose_to: [schedules],
+      },
+  ]
+
+  warning_hyperparams: [
+      {
+          method: temperature_and_exposure,
+          high_extrema_temperature: 30,
+          high_extrema_exposure_days: 5,
+          low_extrema_temperature: 5,
+          low_extrema_exposure_days: 5,
+      },
+
+      {
+          method: milestone_length_condition,
+          milestone: {
+              ref: [transplant, harvest_range],
+              index: [null, 0],
+              value: [0, 0]
+          },
+          condition: {
+              length: 75,
+              operator: ge
+          },
+          warning_data: {
+              title: 재배가능성 낮음,
+              type: 재배불가능,
+              message: '최대 생육기간 75일 이상입니다.'
+          }
+      },
+      {
+          method: milestone_length_condition,
+          milestone: {
+              ref: [transplant, harvest_range],
+              index: [null, 1],
+              value: [0, 0]
+          },
+          condition: {
+              length: 45,
+              operator: le
+          },
+          warning_data: {
+              title: 재배가능성 낮음,
+              type: 재배불가능,
+              message: '최소 생육기간 45일 이하입니다.'
+          }
+      },
+  ]
+
+
+autumnCabbage:
+  default_start_doy: 245
+
+  base_temperature: 5
+  max_dev_temperature: 35
+  growth_gdd: 725
+  allow_multiple_cropping: False
+
+  first_priority_hyperparams: [
+      {
+          method: GDD,
+          type: transplant,
+          value: 0
+      },
+      {
+          method: GDD,
+          type: harvest_range,
+          value: 601,
+          max_period: 10,
+      },
+  ]
+  gdd_hyperparams: [
+      {
+          type: transplant, name: 정식,
+          value: 0,
+          text: '',
+          expose_to: [events, schedules]
+      },
+      {
+          type: ripening_range, name: 결구,
+          value: [505, 725],
+          text: '',
+          max_period: 30,
+          expose_to: [events]
+      },
+      {
+          type: harvest_range, name: 수확,
+          value: [725, 870],
+          max_period: 30,
+          text: '',
+          expose_to: [events, schedules]
+      },
+  ]
+  doy_hyperparams: [
+      {
+          type: sow, name: 파종,
+          ref: [transplant],
+          value: [-30],
+          text: '',
+          expose_to: [events, schedules]
+      },
+  ]
+  warning_hyperparams: []
+
+
+springCabbage:
+  default_start_doy: 51
+
+  base_temperature: 5
+  max_dev_temperature: 35
+  growth_gdd: 601
+  allow_multiple_cropping: False
+
+  first_priority_hyperparams: [
+      {
+          method: GDD,
+          type: transplant,
+          value: 0
+      },
+      {
+          method: GDD,
+          type: harvest_range,
+          value: 601,
+          max_period: 10,
+      },
+  ]
+  gdd_hyperparams: [
+      {
+          type: transplant, name: 정식,
+          value: 0,
+          text: '',
+          expose_to: [events, schedules]
+      },
+      {
+          type: ripening_range, name: 결구,
+          value: [370, 525],
+          text: '',
+          max_period: 30,
+          expose_to: [events]
+      },
+      {
+          type: harvest_range, name: 수확,
+          value: 601,
+          max_period: 10,
+          text: '',
+          expose_to: [events, schedules]
+      },
+  ]
+  doy_hyperparams: [
+      {
+          type: sow, name: 파종,
+          ref: [transplant],
+          value: [-30],
+          text: '',
+          expose_to: [events, schedules]
+      },
+  ]
+
+  warning_hyperparams: []
+
+
+chili:
+  default_start_doy: 106
+
+  base_temperature: 5
+  max_dev_temperature: 35
+  growth_gdd: 1000
+
+  first_priority_hyperparams: [
+      {
+          method: GDD,
+          type: transplant,
+          value: 0
+      },
+      {
+          method: GDD,
+          type: bloom_range,
+          value: [150, 1950]
+      },
+  ]
+  gdd_hyperparams: [
+      {
+          type: transplant, name: 정식,
+          value: 0,
+          text: '',
+          expose_to: [events, schedules]
+      },
+      {
+          type: bloom_range, name: 개화,
+          value: [150, 1950],
+          text: '',
+          expose_to: []
+      },
+      {
+          type: harvest_range, name: 풋고추 수확,
+          value: [550, 1070],
+          max_period: 30,
+          text: '',
+          expose_to: [events, schedules]
+      },
+      {
+          type: harvest_range, name: 붉은고추 수확,
+          value: [1085, 2730],
+          max_period: 80,
+          text: '',
+          expose_to: [events, schedules]
+      },
+  ]
+
+  doy_hyperparams: [
+      {
+          type: sow, name: 파종,
+          ref: [transplant],
+          value: [-65],
+          text: '',
+          expose_to: [events, schedules]
+      },
+      {
+          type: fertilize_range, name: 기비,
+          ref: [transplant, transplant],
+          value: [-21, -14],
+          text: 흙갈이 하기 2~3주 전 석회, 붕소 비료를 투여,
+          expose_to: [schedules]
+      },
+      {
+          type: fertilize, name: 기비,
+          ref: [transplant],
+          value: [-7],
+          text: 이랑 만들기 7일 전 화학비료 투여,
+          expose_to: [schedules]
+      },
+      {
+          type: fertilize_range, name: 추비 1차,
+          ref: [transplant, transplant],
+          value: [25, 30],
+          text: '',
+          expose_to: [schedules]
+      },
+      {
+          type: fertilize_range, name: 추비 2차,
+          ref: [transplant, transplant],
+          value: [50, 60],
+          text: '',
+          expose_to: [schedules]
+      },
+      {
+          type: fertilize_range, name: 추비 3차,
+          ref: [transplant, transplant],
+          value: [75, 90],
+          text: '',
+          expose_to: [schedules]
+      },
+  ]
+
+  warning_hyperparams: [
+      {
+          method: temperature_and_exposure,
+          high_extrema_temperature: 40,
+          high_extrema_exposure_days: 5,
+          low_extrema_temperature: 10,
+          low_extrema_exposure_days: 30
+      },
+      {
+          method: milestone_and_temperature_condition,
+          milestone: {
+              ref: [bloom_range, bloom_range],
+              index: [0, 1],
+              value: [-13, -17]
+          },
+          condition: {
+              variable: tavg,
+              temperature: 30,
+              operator: ge
+          },
+          warning_data: {
+              title: 수확량 감소,
+              type: 이상화분 발생 주의,
+              message: '개화 전 13 ~ 17일 기간에서 30℃ 이상의 온도에 노출될 경우 화분의 수정능력이 저하됩니다.'
+          }
+      },
+  ]
+
+
+corn:
+  default_start_doy: 96
+
+  base_temperature: 5
+  max_dev_temperature: 45
+  growth_gdd: 1400
+  allow_multiple_cropping: True
+
+  harvest_gdd: 1400
+
+  first_priority_hyperparams: [
+      {
+          method: GDD,
+          type: sow,
+          value: 0
+      },
+      {
+          method: GDD,
+          type: silking_range,
+          value: 1049,
+          max_period: 14,
+      },
+      {
+          method: DOY,
+          type: tasselling_range,
+          ref: [silking_range, silking_range],
+          index: [0, 1],
+          value: [-7, -6],
+      },
+  ]
+  gdd_hyperparams: [
+      {
+          type: sow, name: 파종,
+          value: 0,
+          text: '',
+          expose_to: [events, schedules]
+      },
+      {
+          type: silking_range, name: 출사,
+          value: 1049,
+          max_period: 14,
+          text: '',
+          expose_to: [events]
+      },
+      {
+          type: harvest_range, name: 수확,
+          value: 1400,
+          max_period: 10,
+          text: '',
+          expose_to: [events, schedules]
+      },
+  ]
+  doy_hyperparams: [
+      {
+          type: tasselling_range, name: 출웅,
+          ref: [silking_range, silking_range],
+          index: [0, 1],
+          value: [-7, -6],
+          expose_to: [],
+      },
+      {
+          type: fertilize_range, name: 기비,
+          ref: [sow, sow],
+          value: [-30, -15],
+          text: '',
+          expose_to: [schedules]
+      },
+      {
+          type: fertilize_range, name: 추비 1차,
+          ref: [sow, sow],
+          value: [30, 40],
+          text: 잎이 7~8장, 키가 성인 무릎정도 자랐을 때,
+          expose_to: [schedules]
+      },
+      {
+          type: fertilize, name: 추비 2차,
+          ref: [sow],
+          value: [70],
+          text: 옥수수 수꽃이 나왔을 때,
+          expose_to: [schedules]
+      },
+  ]
+  warning_hyperparams: [
+      {
+          method: temperature_and_exposure,
+          high_extrema_temperature: 45,
+          high_extrema_exposure_days: 5,
+          low_extrema_temperature: 10,
+          low_extrema_exposure_days: 30
+      },
+      {
+          method: milestone_and_temperature_condition,
+          milestone: {
+              ref: [tasselling_range, tasselling_range],
+              index: [0, 1],
+              value: [0, 0]
+          },
+          condition: {
+              variable: tmax,
+              temperature: 35,
+              operator: gt
+          },
+          warning_data: {
+              title: 수확량 감소,
+              type: 임실률 감소 주의,
+              message: '출웅기 중 35℃ 초과 온도에 노출되었습니다. 임실률이 감소할 수 있습니다.'
+          }
+      },
+  ]
+
+
+garlic:
+  default_start_doy: 269
+
+  base_temperature: 7.1
+  max_dev_temperature: 25
+  growth_gdd: 1000
+
+  first_priority_hyperparams: [
+      {
+          method: GDD,
+          type: harvest_range,
+          value: 1000,
+          max_period: 10,
+      },
+  ]
+  gdd_hyperparams: [
+      {
+          type: sow, name: 파종,
+          value: 0,
+          text: '',
+          expose_to: [events, schedules]
+      },
+      {
+          type: harvest_range, name: 수확,
+          value: 1000,
+          max_period: 10,
+          text: '',
+          expose_to: [events, schedules]
+      },
+  ]
+  doy_hyperparams: []
+  warning_hyperparams: [
+      {
+          method: temperature_and_exposure,
+          high_extrema_temperature: 25,
+          high_extrema_exposure_days: 5,
+          low_extrema_temperature: 10,
+          low_extrema_exposure_days: 30
+      },
+      {
+          method: milestone_and_temperature_condition,
+          milestone: {
+              ref: [harvest_range, harvest_range],
+              index: [0, 0],
+              value: [-120, 60]
+
+
+          },
+          condition: {
+              variable: tmax,
+              temperature: 25,
+              operator: ge
+          },
+          warning_data: {
+              title: 수확량 감소,
+              type: 생육 정지 주의,
+              message: '쪽 분화 ~ 수확 전 25℃ 이상에서 생육이 정지됨'
+          }
+      },
+  ]
+
+
+onion:
+  default_start_doy: 238
+
+  base_temperature: 4.5
+  max_dev_temperature: 25
+  growth_gdd: 2092
+
+  first_priority_hyperparams: [
+      {
+          method: GDD,
+          type: harvest_range,
+          value: [2092, 2352],
+          max_period: 30,
+      },
+      {
+          method: DOY,
+          type: onion_develop_range,
+          ref: [harvest_range, harvest_range],
+          index: [0, 1],
+          value: [-40, -40],
+      },
+  ]
+  gdd_hyperparams: [
+      {
+          type: sow, name: 파종,
+          value: 0,
+          text: '',
+          expose_to: [events, schedules]
+      },
+      {
+          type: transplant_range, name: 정식,
+          value: [790, 1050],
+          max_period: 40,
+          text: '',
+          expose_to: [events, schedules]
+      },
+      {
+          type: harvest_range, name: 수확,
+          value: [2092, 2352],
+          max_period: 30,
+          text: '',
+          expose_to: [events, schedules]
+      },
+  ]
+  doy_hyperparams: [
+      {
+          type: onion_develop_range, name: 구비대기,
+          ref: [harvest_range, harvest_range],
+          index: [0, 1],
+          value: [-40, -40],
+          expose_to: [],
+      },
+  ]
+  warning_hyperparams: [
+      {
+          method: temperature_and_exposure,
+          high_extrema_temperature: 25,
+          high_extrema_exposure_days: 10,
+          low_extrema_temperature: 4,
+          low_extrema_exposure_days: 30
+      },
+      {
+          method: milestone_and_temperature_condition,
+          milestone: {
+              ref: [onion_develop_range, onion_develop_range],
+              index: [0, 1],
+              value: [0, 0]
+          },
+          condition: {
+              variable: tmax,
+              temperature: 25,
+              operator: ge
+          },
+          warning_data: {
+              title: 수확량 감소,
+              type:  생육저하 주의,
+              message: '구비대기 시기, 25℃ 이상에서 생육둔화'
+          }
+      },
+  ]
+
+
+potato:
+  default_start_doy: 65
+
+  base_temperature: 4.5
+  max_dev_temperature: 35
+  growth_gdd: 875
+
+  first_priority_hyperparams: [
+      {
+          method: GDD,
+          type: transplant_range,
+          value: [55, 110],
+          max_period: 20,
+      },
+      {
+          method: GDD,
+          type: harvest_range,
+          value: 875,
+          max_period: 10,
+      },
+      {
+          method: DOY,
+          type: potato_growth_range,
+          ref: [transplant_range, harvest_range],
+          index: [1, 0],
+          value: [30, -10],
+      }
+  ]
+  gdd_hyperparams: [
+      {
+          type: sow, name: 파종,
+          value: 0,
+          text: '',
+          expose_to: [events, schedules]
+      },
+      {
+          type: transplant_range, name: 정식,
+          value: [55, 110],
+          max_period: 20,
+          text: '',
+          expose_to: [events, schedules]
+      },
+      {
+          type: harvest_range, name: 수확,
+          value: 875,
+          max_period: 10,
+          text: '',
+          expose_to: [events, schedules]
+      },
+  ]
+  doy_hyperparams: [
+      {
+          type: potato_growth_range, name: 덩이줄기 비대기,
+          ref: [transplant_range, harvest_range],
+          index: [1, 0],
+          value: [30, -10],
+          expose_to: [],
+      },
+  ]
+  warning_hyperparams: [
+      {
+          method: temperature_and_exposure,
+          high_extrema_temperature: 35,
+          high_extrema_exposure_days: 5,
+          low_extrema_temperature: 0,
+          low_extrema_exposure_days: 30
+      },
+      {
+          method: milestone_and_temperature_condition,
+          milestone: {
+              ref: [potato_growth_range, potato_growth_range],
+              index: [0, 1],
+              value: [0, 0]
+
+
+          },
+          condition: {
+              variable: tmax,
+              temperature: 30,
+              operator: ge
+          },
+          warning_data: {
+              title: 수확량 감소,
+              type: 덩이줄기 비대 정지 주의,
+              message: '덩이 줄기 비대기 중 30℃ 이상 온도에 노출되었습니다. 덩이줄기 비대가 정지될 수 있습니다.'
+          }
+      },
+  ]
+
+
+radish:
+  default_start_doy: 30
+
+  base_temperature: 5
+  max_dev_temperature: 35
+  growth_gdd: 850
+
+  high_extrema_temperature: 35
+  high_extrema_exposure_days: 5
+  low_extrema_temperature: 4
+  low_extrema_exposure_days: 30
+
+  first_priority_hyperparams: []
+  gdd_hyperparams: [
+      {
+          type: sow, name: 파종,
+          value: 0,
+          text: '',
+          expose_to: [events, schedules]
+      },
+      {
+          type: harvest_range, name: 수확,
+          value: 850,
+          max_period: 10,
+          text: '',
+          expose_to: [events, schedules]
+      },
+  ]
+  doy_hyperparams: []
+  warning_hyperparams: []
+
+
+rice:
+  max_dev_temperature: 40
+
+  high_extrema_temperature: 40
+  high_extrema_exposure_days: 5
+  low_extrema_temperature: 12
+  low_extrema_exposure_days: 5
+
+
+earlyMatureRice:
+  default_start_doy: 161
+
+  base_temperature: 6
+  growth_gdd: 2400
+
+  first_priority_hyperparams: [
+      {
+          method: GDD,
+          type: transplant,
+          value: 0
+      },
+      {
+          method: GDD,
+          type: heading_range,
+          value: [1000, 1200],
+          max_period: 20
+      },
+      {
+          method: GDD,
+          type: harvest_range,
+          value: [2400, 2550],
+          max_period: 20
+      },
+  ]
+  gdd_hyperparams: [
+      {
+          type: transplant, name: 이앙,
+          value: 0,
+          text: '',
+          expose_to: [events, schedules]
+      },
+      {
+          type: heading_range, name: 출수,
+          value: [1000, 1200],
+          max_period: 20,
+          text: '',
+          expose_to: [events]
+      },
+      {
+          type: harvest_range, name: 수확,
+          value: [2400, 2550],
+          max_period: 20,
+          text: '',
+          expose_to: [events, schedules]
+      },
+  ]
+  doy_hyperparams: [
+      {
+          type: sow, name: 파종,
+          ref: [transplant],
+          value: [-25],
+          text: '',
+          expose_to: [events, schedules]
+      },
+      {
+          type: fertilize_range, name: 기비,
+          ref: [transplant, transplant],
+          value: [-5, -4],
+          text: 인산 비료의 경우 기비시 전량 시비합니다,
+          expose_to: [schedules]
+      },
+      {
+          type: fertilize, name: 분얼비,
+          ref: [transplant],
+          value: [12],
+          text: '
+                  기비와 수비의 비율을 7:3으로 할 경우,
+                  분얼비는 생략가능합니다.
+              ',
+          expose_to: [schedules]
+      },
+      {
+          type: fertilize_range, name: 수비,
+          ref: [heading_range, heading_range],
+          value: [-25, -25],
+          index: [0, 1],
+          text: '',
+          expose_to: [schedules]
+      },
+
+      {
+          type: irragation_range, name: 이앙전 물대기,
+          ref: [transplant, transplant],
+          value: [-5, 0],
+          water_level: [5, 5],
+          expose_to: [water_level]
+      },
+      {
+          type: irragation_range, name: 이앙기,
+          ref: [transplant, transplant],
+          value: [0, 3],
+          water_level: [2, 2],
+          expose_to: [water_level]
+      },
+      {
+          type: irragation_range, name: 활착기,
+          ref: [transplant, transplant],
+          value: [3, 7],
+          water_level: [7, 7],
+          expose_to: [water_level]
+      },
+      {
+          type: irragation_range, name: 분얼성기,
+          ref: [transplant, transplant],
+          value: [7, 12],
+          water_level: [2, 2],
+          expose_to: [water_level]
+      },
+      {
+          type: irragation_range, name: 중간물떼기,
+          ref: [transplant, heading_range],
+          value: [12, -20],
+          index: [null, 0],
+          water_level: [0, 0],
+          expose_to: [water_level]
+      },
+      {
+          type: irragation_range, name: 배동받이때(유수형성기),
+          ref: [heading_range, heading_range],
+          value: [-20, 0],
+          index: [0, 0],
+          water_level: [2, 2],
+          expose_to: [water_level]
+      },
+      {
+          type: irragation_range, name: 출수기,
+          ref: [heading_range, heading_range],
+          value: [0, 10],
+          index: [0, 1],
+          water_level: [7, 7],
+          expose_to: [water_level]
+      },
+      {
+          type: irragation_range, name: 등숙기,
+          ref: [heading_range, harvest_range],
+          value: [10, -7],
+          index: [1, 0],
+          water_level: [2, 0],
+          period: 3,
+          expose_to: [water_level]
+      },
+      {
+          type: irragation_range, name: 완전물떼기,
+          ref: [harvest_range, harvest_range],
+          value: [-7, 0],
+          index: [0, 0],
+          water_level: [2, 0],
+          expose_to: [water_level]
+      },
+  ]
+
+  warning_hyperparams: []
+
+
+middleLateMatureRice:
+  default_start_doy: 165
+
+  base_temperature: 8
+  growth_gdd: 2600
+
+  first_priority_hyperparams: [
+      {
+          method: GDD,
+          type: transplant,
+          value: 0
+      },
+      {
+          method: GDD,
+          type: heading_range,
+          value: 1404,
+          max_period: 14
+      },
+      {
+          method: GDD,
+          type: harvest_range,
+          value: 2600,
+          max_period: 10
+      },
+  ]
+  gdd_hyperparams: [
+      {
+          type: transplant, name: 이앙,
+          value: 0,
+          text: '',
+          expose_to: [events, schedules]
+      },
+      {
+          type: heading_range, name: 출수,
+          value: 1404,
+          max_period: 14,
+          text: '',
+          expose_to: [events]
+      },
+      {
+          type: harvest_range, name: 수확,
+          value: 2600,
+          max_period: 10,
+          text: '',
+          expose_to: [events, schedules]
+      },
+  ]
+  doy_hyperparams: [
+      {
+          type: sow, name: 파종,
+          ref: [transplant],
+          value: [-25],
+          text: '',
+          expose_to: [events, schedules]
+      },
+      {
+          type: fertilize_range, name: 기비,
+          ref: [transplant, transplant],
+          value: [-5, -4],
+          text: 인산 비료의 경우 기비시 전량 시비합니다,
+          expose_to: [schedules]
+      },
+      {
+          type: fertilize, name: 분얼비,
+          ref: [transplant],
+          value: [12],
+          text: '
+                  기비와 수비의 비율을 7:3으로 할 경우,
+                  분얼비는 생략가능합니다.
+              ',
+          expose_to: [schedules]
+      },
+      {
+          type: fertilize_range, name: 수비,
+          ref: [heading_range, heading_range],
+          value: [-25, -25],
+          index: [0, 1],
+          text: '',
+          expose_to: [schedules]
+      },
+
+      {
+          type: irragation_range, name: 이앙전 물대기,
+          ref: [transplant, transplant],
+          value: [-5, 0],
+          water_level: [5, 5],
+          expose_to: [water_level]
+      },
+      {
+          type: irragation_range, name: 이앙기,
+          ref: [transplant, transplant],
+          value: [0, 3],
+          water_level: [2, 2],
+          expose_to: [water_level]
+      },
+      {
+          type: irragation_range, name: 활착기,
+          ref: [transplant, transplant],
+          value: [3, 8],
+          water_level: [7, 7],
+          expose_to: [water_level]
+      },
+      {
+          type: irragation_range, name: 분얼성기,
+          ref: [transplant, transplant],
+          value: [8, 16],
+          water_level: [2, 2],
+          expose_to: [water_level]
+      },
+      {
+          type: irragation_range, name: 중간물떼기,
+          ref: [transplant, heading_range],
+          value: [16, -30],
+          index: [null, 0],
+          water_level: [0, 0],
+          expose_to: [water_level]
+      },
+      {
+          type: irragation_range, name: 배동받이때(유수형성기),
+          ref: [heading_range, heading_range],
+          value: [-30, 0],
+          index: [0, 0],
+          water_level: [2, 2],
+          expose_to: [water_level]
+      },
+      {
+          type: irragation_range, name: 출수기,
+          ref: [heading_range, heading_range],
+          value: [0, 10],
+          index: [0, 1],
+          water_level: [7, 7],
+          expose_to: [water_level]
+      },
+      {
+          type: irragation_range, name: 등숙기,
+          ref: [heading_range, harvest_range],
+          value: [10, -7],
+          index: [1, 0],
+          water_level: [2, 0],
+          period: 3,
+          expose_to: [water_level]
+      },
+      {
+          type: irragation_range, name: 완전물떼기,
+          ref: [harvest_range, harvest_range],
+          value: [-7, 0],
+          index: [0, 0],
+          water_level: [2, 0],
+          expose_to: [water_level]
+      },
+  ]
+
+  warning_hyperparams: []
+
+
+middleMatureRice:
+  default_start_doy: 148
+
+  base_temperature: 7
+  growth_gdd: 2550
+
+  first_priority_hyperparams: [
+      {
+          method: GDD,
+          type: transplant,
+          value: 0
+      },
+      {
+          method: GDD,
+          type: heading_range,
+          value: [1330, 1510],
+          max_period: 20
+      },
+      {
+          method: GDD,
+          type: harvest_range,
+          value: [2500, 2600],
+          max_period: 20
+      },
+  ]
+  gdd_hyperparams: [
+      {
+          type: transplant, name: 이앙,
+          value: 0,
+          text: '',
+          expose_to: [events, schedules]
+      },
+      {
+          type: heading_range, name: 출수,
+          value: [1330, 1510],
+          max_period: 20,
+          text: '',
+          expose_to: [events]
+      },
+      {
+          type: harvest_range, name: 수확,
+          value: [2500, 2600],
+          max_period: 20,
+          text: '',
+          expose_to: [events, schedules]
+      },
+  ]
+  doy_hyperparams: [
+      {
+          type: sow, name: 파종,
+          ref: [transplant],
+          value: [-25],
+          text: '',
+          expose_to: [events, schedules]
+      },
+      {
+          type: fertilize_range, name: 기비,
+          ref: [transplant, transplant],
+          value: [-5, -4],
+          text: 인산 비료의 경우 기비시 전량 시비합니다,
+          expose_to: [schedules]
+      },
+      {
+          type: fertilize, name: 분얼비,
+          ref: [transplant],
+          value: [12],
+          text: '
+                  기비와 수비의 비율을 7:3으로 할 경우,
+                  분얼비는 생략가능합니다.
+              ',
+          expose_to: [schedules]
+      },
+      {
+          type: fertilize_range, name: 수비,
+          ref: [heading_range, heading_range],
+          value: [-25, -25],
+          index: [0, 1],
+          text: '',
+          expose_to: [schedules]
+      },
+
+      {
+          type: irragation_range, name: 이앙전 물대기,
+          ref: [transplant, transplant],
+          value: [-5, 0],
+          water_level: [5, 5],
+          expose_to: [water_level]
+      },
+      {
+          type: irragation_range, name: 이앙기,
+          ref: [transplant, transplant],
+          value: [0, 3],
+          water_level: [2, 2],
+          expose_to: [water_level]
+      },
+      {
+          type: irragation_range, name: 활착기,
+          ref: [transplant, transplant],
+          value: [3, 8],
+          water_level: [7, 7],
+          expose_to: [water_level]
+      },
+      {
+          type: irragation_range, name: 분얼성기,
+          ref: [transplant, transplant],
+          value: [8, 16],
+          water_level: [2, 2],
+          expose_to: [water_level]
+      },
+      {
+          type: irragation_range, name: 중간물떼기,
+          ref: [transplant, heading_range],
+          value: [16, -30],
+          index: [null, 0],
+          water_level: [0, 0],
+          expose_to: [water_level]
+      },
+      {
+          type: irragation_range, name: 배동받이때(유수형성기),
+          ref: [heading_range, heading_range],
+          value: [-30, 0],
+          index: [0, 0],
+          water_level: [2, 2],
+          expose_to: [water_level]
+      },
+      {
+          type: irragation_range, name: 출수기,
+          ref: [heading_range, heading_range],
+          value: [0, 10],
+          index: [0, 1],
+          water_level: [7, 7],
+          expose_to: [water_level]
+      },
+      {
+          type: irragation_range, name: 등숙기,
+          ref: [heading_range, harvest_range],
+          value: [10, -7],
+          index: [1, 0],
+          water_level: [2, 0],
+          period: 3,
+          expose_to: [water_level]
+      },
+      {
+          type: irragation_range, name: 완전물떼기,
+          ref: [harvest_range, harvest_range],
+          value: [-7, 0],
+          index: [0, 0],
+          water_level: [2, 0],
+          expose_to: [water_level]
+      },
+  ]
+
+  warning_hyperparams: []
+
+
+sesame:
+  default_start_doy: 126
+
+  base_temperature: 0
+  max_dev_temperature: 30
+  growth_gdd: 1572
+
+  first_priority_hyperparams: [
+      {
+          method: GDD,
+          type: bloom_range,
+          value: [410, 1110],
+          max_period: 40
+      },
+  ]
+  gdd_hyperparams: [
+      {
+          type: sow, name: 파종,
+          value: 0,
+          text: '',
+          expose_to: [events, schedules]
+      },
+      {
+          type: bloom_range, name: 개화,
+          value: [410, 1110],
+          max_period: 40,
+          text: '',
+          expose_to: [events]
+      },
+      {
+          type: harvest_range, name: 수확,
+          value: 1572,
+          max_period: 10,
+          text: '',
+          expose_to: [events, schedules]
+      },
+  ]
+  doy_hyperparams: []
+  warning_hyperparams: [
+      {
+          method: temperature_and_exposure,
+          high_extrema_temperature: 30,
+          high_extrema_exposure_days: 5,
+          low_extrema_temperature: 18,
+          low_extrema_exposure_days: 30,
+      },
+      {
+          method: milestone_and_temperature_condition,
+          milestone: {
+              ref: [bloom_range, bloom_range],
+              index: [0, 1],
+              value: [0, 0]
+          },
+          condition: {
+              variable: tmax,
+              temperature: 40,
+              operator: ge
+          },
+          warning_data: {
+              title: 수확량 감소,
+              type: 조기낙화 주의,
+              message: '개화기 중 40℃ 이상에 노출되었습니다. 등숙률이 저하될 수 있습니다.'
+          }
+      },
+  ]
+
+
+sweetPotato:
+  default_start_doy: 131
+
+  base_temperature: 15.5
+  max_dev_temperature: 38
+  growth_gdd: 1462
+  allow_multiple_cropping: True
+
+  high_extrema_temperature: 32.2
+  high_extrema_exposure_days: 15
+  low_extrema_temperature: 15
+  low_extrema_exposure_days: 30
+
+  first_priority_hyperparams: [
+      {
+          method: GDD,
+          type: transplant, value: 0
+      },
+  ]
+  gdd_hyperparams: [
+      {
+          type: transplant, name: 삽식,
+          value: 0,
+          text: '',
+          expose_to: [events, schedules]
+      },
+      {
+          type: harvest_range, name: 수확,
+          value: 1462,
+          max_period: 10,
+          text: '',
+          expose_to: [events, schedules]
+      },
+  ]
+  doy_hyperparams: [
+      {
+          type: sow, name: 파종,
+          ref: [transplant],
+          value: [-60],
+          text: '',
+          expose_to: [events, schedules]
+      },
+  ]
+  warning_hyperparams: []
+
+
+wheat:
+  default_start_doy: 284
+
+  base_temperature: 0
+  max_dev_temperature: 32
+  growth_gdd: 1671
+
+  high_extrema_temperature: 32
+  high_extrema_exposure_days: 5
+  low_extrema_temperature: 3
+  low_extrema_exposure_days: 30
+
+  first_priority_hyperparams: []
+  gdd_hyperparams: [
+      {
+          type: sow, name: 파종,
+          value: 0,
+          text: '',
+          expose_to: [events, schedules]
+      },
+      {
+          type: tillering_range, name: 분얼 및 신장,
+          value: [601, 970],
+          max_period: 50,
+          text: '',
+          expose_to: [events]
+      },
+      {
+          type: heading_range, name: 출수,
+          value: [975, 1280],
+          max_period: 30,
+          text: '',
+          expose_to: [events]
+      },
+      {
+          type: ripening_range, name: 등숙,
+          value: [1280, 1665],
+          max_period: 30,
+          text: '',
+          expose_to: [events]
+      },
+      {
+          type: harvest_range, name: 수확,
+          value: [1671, 2595],
+          max_period: 40,
+          text: '',
+          expose_to: [events, schedules]
+      },
+  ]
+  doy_hyperparams: []
+  warning_hyperparams: []

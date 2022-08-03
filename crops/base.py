@@ -1,4 +1,10 @@
+from pathlib import PurePath
+
+import yaml
 import pandas as pd
+
+
+DEFAULT_PARAMETERS_FP = PurePath(__file__).parent / 'default_parameters.yaml'
 
 
 class BaseCropModel:
@@ -15,7 +21,26 @@ class BaseCropModel:
         self.min_start_doy = 0
         self.max_start_doy = 366
 
+        self.load_parameter()
         self.start_doy = self.default_start_doy
+
+    def load_parameter(self):
+        with open(DEFAULT_PARAMETERS_FP) as f_param:
+            entire_params = yaml.load(f_param, Loader=yaml.FullLoader)
+
+            if hasattr(self, 'parent_key'):
+                parent_crop_params = entire_params.get(self.parent_key, {})
+                [setattr(self, k, v) for k, v in parent_crop_params.items()]
+
+            crop_params = entire_params.get(self.key, {})
+            for k, v in crop_params.items():
+                if hasattr(self, k) and isinstance(getattr(self, k), list):
+                    # if parameter is already set by parent & is list,
+                    # concatenate
+                    inherited_v = getattr(self, k)
+                    setattr(self, k, inherited_v + v)
+                else:
+                    setattr(self, k, v)
 
     def set_id_with_index(self, index):
         self.id = f'{self.key}_{index}'
@@ -32,6 +57,33 @@ class BaseCropModel:
 
         if should_update is True:
             self.set_start_doy(self.start_doy)
+
+    def update_parameters(self, parameters: list) -> None:
+        def is_param_equal(param1, param2):
+            type1 = param1['type'].split('_')[0]
+            type2 = param2['type'].split('_')[0]
+            name1 = param1['name']
+            name2 = param2['name']
+            return type1 == type2 and name1 == name2
+
+        for new_param in parameters:
+            for idx, old_param in enumerate(self.gdd_hyperparams):
+                if not is_param_equal(old_param, new_param):
+                    continue
+                self.gdd_hyperparams[idx] = {
+                    **old_param,
+                    'type': new_param['type'],
+                    'value': new_param['value']
+                }
+
+            for idx, old_param in enumerate(self.first_priority_hyperparams):
+                if not is_param_equal(old_param, new_param):
+                    continue
+                self.first_priority_hyperparams[idx] = {
+                    **old_param,
+                    'type': new_param['type'],
+                    'value': new_param['value']
+                }
 
     def get_gdd_weather_df(self):
         if self.weather_df is None:
@@ -190,8 +242,11 @@ class BaseCropModel:
             if _ref_data is None:
                 raise ValueError('Failed to get preceding calculation results')
 
-            ret_doy = _ref_data + val if index is None \
-                else _ref_data[index] + val
+            if index is not None:
+                ret_doy = _ref_data[index] + val
+            else:
+                ret_doy = _ref_data + val
+
             event_data.append(ret_doy)
 
         event_data = event_data[0] if len(event_data) == 1 else event_data
