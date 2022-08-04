@@ -1,10 +1,6 @@
-from pathlib import PurePath
-
-import yaml
 import pandas as pd
 
-
-DEFAULT_PARAMETERS_FP = PurePath(__file__).parent / 'default_parameters.yaml'
+from ..utils.helper import is_hyperparam_equal
 
 
 class BaseCropModel:
@@ -21,26 +17,20 @@ class BaseCropModel:
         self.min_start_doy = 0
         self.max_start_doy = 366
 
-        self.load_parameter()
-        self.start_doy = self.default_start_doy
+    def set_parameters(self, parameters):
+        if hasattr(self, 'parent_key'):
+            parent_crop_params = parameters.get(self.parent_key, {})
+            [setattr(self, k, v) for k, v in parent_crop_params.items()]
 
-    def load_parameter(self):
-        with open(DEFAULT_PARAMETERS_FP) as f_param:
-            entire_params = yaml.load(f_param, Loader=yaml.FullLoader)
-
-            if hasattr(self, 'parent_key'):
-                parent_crop_params = entire_params.get(self.parent_key, {})
-                [setattr(self, k, v) for k, v in parent_crop_params.items()]
-
-            crop_params = entire_params.get(self.key, {})
-            for k, v in crop_params.items():
-                if hasattr(self, k) and isinstance(getattr(self, k), list):
-                    # if parameter is already set by parent & is list,
-                    # concatenate
-                    inherited_v = getattr(self, k)
-                    setattr(self, k, inherited_v + v)
-                else:
-                    setattr(self, k, v)
+        crop_params = parameters.get(self.key, {})
+        for k, v in crop_params.items():
+            if hasattr(self, k) and isinstance(getattr(self, k), list):
+                # if parameter is already set by parent & is list,
+                # concatenate
+                inherited_v = getattr(self, k)
+                setattr(self, k, inherited_v + v)
+            else:
+                setattr(self, k, v)
 
     def set_id_with_index(self, index):
         self.id = f'{self.key}_{index}'
@@ -50,40 +40,52 @@ class BaseCropModel:
         self.gdd_weather_df = self.get_gdd_weather_df()
         self.set_start_doy(self.start_doy)
 
-    def update_gdd_method(self, method):
-        should_update = self.gdd_method != method
-        self.gdd_method = method
-        self.gdd_weather_df = self.get_gdd_weather_df()
-
-        if should_update is True:
-            self.set_start_doy(self.start_doy)
-
     def update_parameters(self, parameters: list) -> None:
-        def is_param_equal(param1, param2):
-            type1 = param1['type'].split('_')[0]
-            type2 = param2['type'].split('_')[0]
-            name1 = param1['name']
-            name2 = param2['name']
-            return type1 == type2 and name1 == name2
-
+        should_update_gdd_data = False
         for new_param in parameters:
+            # search & update parameters (not hyperparameters)
+            # parameters: 기준온도, 최대생육온도, GDD계산식
+
+            param_type = new_param['type']
+            param_value = new_param['value']
+
+            if (param_type == 'gdd_method' and
+                    param_value != self.gdd_method):
+                should_update_gdd_data = True
+            elif (param_type == 'base_temperature' and
+                    param_value != self.base_temperature):
+                should_update_gdd_data = True
+            elif (param_type == 'max_dev_temperature' and
+                    param_value != self.max_dev_temperature):
+                should_update_gdd_data = True
+
+            if hasattr(self, param_type):
+                setattr(self, param_type, param_value)
+                continue
+
+            # search & udpate gdd_hyperparams
             for idx, old_param in enumerate(self.gdd_hyperparams):
-                if not is_param_equal(old_param, new_param):
+                if not is_hyperparam_equal(old_param, new_param):
                     continue
                 self.gdd_hyperparams[idx] = {
                     **old_param,
-                    'type': new_param['type'],
-                    'value': new_param['value']
+                    **new_param
                 }
 
+            # TODO: search & udpate doy_hyperparams
+
+            # search & udpate refernce_hyperparams(first priority hyperparams)
             for idx, old_param in enumerate(self.first_priority_hyperparams):
-                if not is_param_equal(old_param, new_param):
+                if not is_hyperparam_equal(old_param, new_param):
                     continue
                 self.first_priority_hyperparams[idx] = {
                     **old_param,
-                    'type': new_param['type'],
-                    'value': new_param['value']
+                    **new_param
                 }
+
+        if should_update_gdd_data is True:
+            self.gdd_weather_df = self.get_gdd_weather_df()
+        self.set_start_doy(self.start_doy)
 
     def get_gdd_weather_df(self):
         if self.weather_df is None:
@@ -133,7 +135,7 @@ class BaseCropModel:
     def set_start_doy(self, start_doy=None):
         # Note: sets start_doy then updates end_doy
         if start_doy is None:
-            start_doy = self.default_start_doy
+            start_doy = self.start_doy
 
         self.start_doy = start_doy
         end_doy = self.get_event_end_doy(self.start_doy, self.growth_gdd)
@@ -512,3 +514,38 @@ class BaseCropModel:
                 ret_warnings.extend(_warnings)
 
         return ret_warnings
+
+    @property
+    def parameters(self):
+        _parameters = [
+            {
+                'type': 'base_temperature',
+                'value': self.base_temperature,
+                'editable': True,
+            },
+            {
+                'type': 'max_dev_temperature',
+                'value': self.max_dev_temperature,
+                'editable': True,
+            },
+            {
+                'type': 'gdd_method',
+                'value': self.gdd_method,
+                'editable': True,
+            },
+        ]
+
+        hyper_params = []
+        for param in self.gdd_hyperparams:
+            hyper_params.append({
+                **param,
+                'editable': True
+            })
+
+        for param in self.doy_hyperparams:
+            hyper_params.append({
+                **param,
+                'editable': False
+            })
+
+        return _parameters + hyper_params

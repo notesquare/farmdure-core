@@ -1,5 +1,5 @@
 adzuki:
-  default_start_doy: 146
+  start_doy: 146
 
   base_temperature: 5
   max_dev_temperature: 24
@@ -38,7 +38,7 @@ adzuki:
 
 
 barley:
-  default_start_doy: 290
+  start_doy: 290
 
   base_temperature: 0
   max_dev_temperature: 30
@@ -91,7 +91,7 @@ barley:
 
 
 bean:
-  default_start_doy: 172
+  start_doy: 172
 
   high_extrema_temperature: 35
   high_extrema_exposure_days: 5
@@ -208,7 +208,7 @@ cabbage:
 
 
 autumnCabbage:
-  default_start_doy: 245
+  start_doy: 245
 
   base_temperature: 5
   max_dev_temperature: 35
@@ -263,7 +263,7 @@ autumnCabbage:
 
 
 springCabbage:
-  default_start_doy: 51
+  start_doy: 51
 
   base_temperature: 5
   max_dev_temperature: 35
@@ -319,7 +319,7 @@ springCabbage:
 
 
 chili:
-  default_start_doy: 106
+  start_doy: 106
 
   base_temperature: 5
   max_dev_temperature: 35
@@ -441,7 +441,7 @@ chili:
 
 
 corn:
-  default_start_doy: 96
+  start_doy: 96
 
   base_temperature: 5
   max_dev_temperature: 45
@@ -552,7 +552,7 @@ corn:
 
 
 garlic:
-  default_start_doy: 269
+  start_doy: 269
 
   base_temperature: 7.1
   max_dev_temperature: 25
@@ -614,7 +614,7 @@ garlic:
 
 
 onion:
-  default_start_doy: 238
+  start_doy: 238
 
   base_temperature: 4.5
   max_dev_temperature: 25
@@ -696,7 +696,7 @@ onion:
 
 
 potato:
-  default_start_doy: 65
+  start_doy: 65
 
   base_temperature: 4.5
   max_dev_temperature: 35
@@ -786,7 +786,7 @@ potato:
 
 
 radish:
-  default_start_doy: 30
+  start_doy: 30
 
   base_temperature: 5
   max_dev_temperature: 35
@@ -827,7 +827,7 @@ rice:
 
 
 earlyMatureRice:
-  default_start_doy: 161
+  start_doy: 161
 
   base_temperature: 6
   growth_gdd: 2400
@@ -982,7 +982,7 @@ earlyMatureRice:
 
 
 middleLateMatureRice:
-  default_start_doy: 165
+  start_doy: 165
 
   base_temperature: 8
   growth_gdd: 2600
@@ -1137,7 +1137,7 @@ middleLateMatureRice:
 
 
 middleMatureRice:
-  default_start_doy: 148
+  start_doy: 148
 
   base_temperature: 7
   growth_gdd: 2550
@@ -1292,7 +1292,7 @@ middleMatureRice:
 
 
 sesame:
-  default_start_doy: 126
+  start_doy: 126
 
   base_temperature: 0
   max_dev_temperature: 30
@@ -1359,7 +1359,7 @@ sesame:
 
 
 sweetPotato:
-  default_start_doy: 131
+  start_doy: 131
 
   base_temperature: 15.5
   max_dev_temperature: 38
@@ -1405,7 +1405,7 @@ sweetPotato:
 
 
 wheat:
-  default_start_doy: 284
+  start_doy: 284
 
   base_temperature: 0
   max_dev_temperature: 32
