@@ -18,6 +18,11 @@ class BaseCropModel:
         self.max_start_doy = 366
 
     def set_parameters(self, parameters):
+        # remove previous hpyer_parameters
+        self.gdd_hyperparams = []
+        self.doy_hyperparams = []
+        self.first_priority_hyperparams = []
+
         if hasattr(self, 'parent_key'):
             parent_crop_params = parameters.get(self.parent_key, {})
             [setattr(self, k, v) for k, v in parent_crop_params.items()]
