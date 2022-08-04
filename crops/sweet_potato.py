@@ -6,4 +6,3 @@ class SweetPotatoModel(BaseCropModel):
     _type = 'sweetPotato'
     color = '#904e50'
     key = 'sweetPotato'
-    gdd_method = 'm3'

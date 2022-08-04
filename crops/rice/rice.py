@@ -5,7 +5,6 @@ class RiceModel(BaseCropModel):
     name = '벼'
     _type = 'rice'
     color = '#d77c29'
-    gdd_method = 'm3'
 
     @property
     def warnings(self):

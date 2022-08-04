@@ -18,7 +18,12 @@ class BaseCropModel:
         self.max_start_doy = 366
 
     def set_parameters(self, parameters):
-        # remove previous hpyer_parameters
+        # TODO: remove previous parameters
+        self.base_temperature = 0
+        self.max_dev_temperature = 99
+        self.gdd_method = 'm2'
+
+        # remove previous hyper_parameters
         self.gdd_hyperparams = []
         self.doy_hyperparams = []
         self.first_priority_hyperparams = []

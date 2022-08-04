@@ -818,6 +818,7 @@ radish:
 
 
 rice:
+  gdd_method: m3
   max_dev_temperature: 40
 
   high_extrema_temperature: 40
@@ -1360,7 +1361,7 @@ sesame:
 
 sweetPotato:
   start_doy: 131
-
+  gdd_method: m3
   base_temperature: 15.5
   max_dev_temperature: 38
   growth_gdd: 1462
