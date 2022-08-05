@@ -1,4 +1,5 @@
 import pandas as pd
+from traceback import extract_tb
 
 from ..utils.helper import is_hyperparam_equal
 
@@ -18,29 +19,37 @@ class BaseCropModel:
         self.max_start_doy = 366
 
     def set_parameters(self, parameters):
-        # TODO: remove previous parameters
-        self.base_temperature = 0
-        self.max_dev_temperature = 99
-        self.gdd_method = 'm2'
+        try:
+            # TODO: remove previous parameters
+            self.base_temperature = 0
+            self.max_dev_temperature = 99
+            self.gdd_method = 'm2'
 
-        # remove previous hyper_parameters
-        self.gdd_hyperparams = []
-        self.doy_hyperparams = []
-        self.first_priority_hyperparams = []
+            # remove previous hyper_parameters
+            self.gdd_hyperparams = []
+            self.doy_hyperparams = []
+            self.first_priority_hyperparams = []
 
-        if hasattr(self, 'parent_key'):
-            parent_crop_params = parameters.get(self.parent_key, {})
-            [setattr(self, k, v) for k, v in parent_crop_params.items()]
+            if hasattr(self, 'parent_key'):
+                parent_crop_params = parameters.get(self.parent_key, {})
+                [setattr(self, k, v) for k, v in parent_crop_params.items()]
 
-        crop_params = parameters.get(self.key, {})
-        for k, v in crop_params.items():
-            if hasattr(self, k) and isinstance(getattr(self, k), list):
-                # if parameter is already set by parent & is list,
-                # concatenate
-                inherited_v = getattr(self, k)
-                setattr(self, k, inherited_v + v)
-            else:
-                setattr(self, k, v)
+            crop_params = parameters.get(self.key, {})
+            for k, v in crop_params.items():
+                if hasattr(self, k) and isinstance(getattr(self, k), list):
+                    # if parameter is already set by parent & is list,
+                    # concatenate
+                    inherited_v = getattr(self, k)
+                    setattr(self, k, inherited_v + v)
+                else:
+                    setattr(self, k, v)
+
+            self.gdd_weather_df = self.get_gdd_weather_df()
+            self.set_start_doy(self.start_doy)
+
+        except Exception as e:
+            print('Error', e)
+            extract_tb()
 
     def set_id_with_index(self, index):
         self.id = f'{self.key}_{index}'
@@ -48,54 +57,58 @@ class BaseCropModel:
     def set_weather_data(self, weather_df):
         self.weather_df = weather_df
         self.gdd_weather_df = self.get_gdd_weather_df()
-        self.set_start_doy(self.start_doy)
 
     def update_parameters(self, parameters: list) -> None:
-        should_update_gdd_data = False
-        for new_param in parameters:
-            # search & update parameters (not hyperparameters)
-            # parameters: 기준온도, 최대생육온도, GDD계산식
+        try:
+            should_update_gdd_data = False
+            for new_param in parameters:
+                # search & update parameters (not hyperparameters)
+                # parameters: 기준온도, 최대생육온도, GDD계산식
 
-            param_type = new_param['type']
-            param_value = new_param['value']
+                param_type = new_param['type']
+                param_value = new_param['value']
 
-            if (param_type == 'gdd_method' and
-                    param_value != self.gdd_method):
-                should_update_gdd_data = True
-            elif (param_type == 'base_temperature' and
-                    param_value != self.base_temperature):
-                should_update_gdd_data = True
-            elif (param_type == 'max_dev_temperature' and
-                    param_value != self.max_dev_temperature):
-                should_update_gdd_data = True
+                if (param_type == 'gdd_method' and
+                        param_value != self.gdd_method):
+                    should_update_gdd_data = True
+                elif (param_type == 'base_temperature' and
+                        param_value != self.base_temperature):
+                    should_update_gdd_data = True
+                elif (param_type == 'max_dev_temperature' and
+                        param_value != self.max_dev_temperature):
+                    should_update_gdd_data = True
 
-            if hasattr(self, param_type):
-                setattr(self, param_type, param_value)
-                continue
-
-            # search & udpate gdd_hyperparams
-            for idx, old_param in enumerate(self.gdd_hyperparams):
-                if not is_hyperparam_equal(old_param, new_param):
+                if hasattr(self, param_type):
+                    setattr(self, param_type, param_value)
                     continue
-                self.gdd_hyperparams[idx] = {
-                    **old_param,
-                    **new_param
-                }
 
-            # TODO: search & udpate doy_hyperparams
+                # search & udpate gdd_hyperparams
+                for idx, old_param in enumerate(self.gdd_hyperparams):
+                    if not is_hyperparam_equal(old_param, new_param):
+                        continue
+                    self.gdd_hyperparams[idx] = {
+                        **old_param,
+                        **new_param
+                    }
 
-            # search & udpate refernce_hyperparams(first priority hyperparams)
-            for idx, old_param in enumerate(self.first_priority_hyperparams):
-                if not is_hyperparam_equal(old_param, new_param):
-                    continue
-                self.first_priority_hyperparams[idx] = {
-                    **old_param,
-                    **new_param
-                }
+                # TODO: search & udpate doy_hyperparams
 
-        if should_update_gdd_data is True:
-            self.gdd_weather_df = self.get_gdd_weather_df()
-        self.set_start_doy(self.start_doy)
+                # search & udpate refernce_hyperparams(first priority hyperparams)
+                for idx, old_param in enumerate(self.first_priority_hyperparams):
+                    if not is_hyperparam_equal(old_param, new_param):
+                        continue
+                    self.first_priority_hyperparams[idx] = {
+                        **old_param,
+                        **new_param
+                    }
+
+            if should_update_gdd_data is True:
+                self.gdd_weather_df = self.get_gdd_weather_df()
+            self.set_start_doy(self.start_doy)
+
+        except Exception as e:
+            print('Error', e)
+            extract_tb()
 
     def get_gdd_weather_df(self):
         if self.weather_df is None:
