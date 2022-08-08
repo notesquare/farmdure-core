@@ -657,7 +657,7 @@ onion:
       },
       {
           method: DOY,
-          type: onion_develop_range,
+          type: oniondevelop_range,
           ref: [harvest_range, harvest_range],
           index: [0, 1],
           value: [-40, -40],
@@ -687,7 +687,7 @@ onion:
   ]
   doy_hyperparams: [
       {
-          type: onion_develop_range, name: 구비대기,
+          type: oniondevelop_range, name: 구비대기,
           ref: [harvest_range, harvest_range],
           index: [0, 1],
           value: [-40, -40],
@@ -705,7 +705,7 @@ onion:
       {
           method: milestone_and_temperature_condition,
           milestone: {
-              ref: [onion_develop_range, onion_develop_range],
+              ref: [oniondevelop_range, oniondevelop_range],
               index: [0, 1],
               value: [0, 0]
           },
@@ -748,7 +748,7 @@ potato:
       },
       {
           method: DOY,
-          type: potato_growth_range,
+          type: potatogrowth_range,
           ref: [transplant_range, harvest_range],
           index: [1, 0],
           value: [30, -10],
@@ -778,7 +778,7 @@ potato:
   ]
   doy_hyperparams: [
       {
-          type: potato_growth_range, name: 덩이줄기 비대기,
+          type: potatogrowth_range, name: 덩이줄기 비대기,
           ref: [transplant_range, harvest_range],
           index: [1, 0],
           value: [30, -10],
@@ -796,7 +796,7 @@ potato:
       {
           method: milestone_and_temperature_condition,
           milestone: {
-              ref: [potato_growth_range, potato_growth_range],
+              ref: [potatogrowth_range, potatogrowth_range],
               index: [0, 1],
               value: [0, 0]
 
