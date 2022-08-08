@@ -1,9 +1,13 @@
 adzuki:
   start_doy: 146
-
+  gdd_method: m2
   base_temperature: 5
   max_dev_temperature: 24
-  growth_gdd: 2300
+
+  growth_gdd_rule: {
+    ref: harvest_range,
+    index: 0
+  }
 
   high_extrema_temperature: 30
   high_extrema_exposure_days: 15
@@ -39,10 +43,13 @@ adzuki:
 
 barley:
   start_doy: 290
-
+  gdd_method: m2
   base_temperature: 0
   max_dev_temperature: 30
-  growth_gdd: 1600
+  growth_gdd_rule: {
+    ref: harvest_range,
+    index: 0
+  }
 
   high_extrema_temperature: 30
   high_extrema_exposure_days: 5
@@ -92,7 +99,7 @@ barley:
 
 bean:
   start_doy: 172
-
+  gdd_method: m2
   high_extrema_temperature: 35
   high_extrema_exposure_days: 5
   low_extrema_temperature: 20
@@ -100,7 +107,10 @@ bean:
 
   base_temperature: 0
   max_dev_temperature: 35
-  growth_gdd: 2700
+  growth_gdd_rule: {
+    ref: harvest_range,
+    index: 0
+  }
 
   first_priority_hyperparams: []
   gdd_hyperparams: [
@@ -209,10 +219,14 @@ cabbage:
 
 autumnCabbage:
   start_doy: 245
-
+  gdd_method: m2
+  parent_key: cabbage
   base_temperature: 5
   max_dev_temperature: 35
-  growth_gdd: 725
+  growth_gdd_rule: {
+    ref: harvest_range,
+    index: 0
+  }
   allow_multiple_cropping: False
 
   first_priority_hyperparams: [
@@ -264,10 +278,14 @@ autumnCabbage:
 
 springCabbage:
   start_doy: 51
-
+  gdd_method: m2
+  parent_key: cabbage
   base_temperature: 5
   max_dev_temperature: 35
-  growth_gdd: 601
+  growth_gdd_rule: {
+    ref: harvest_range,
+    index: 0
+  }
   allow_multiple_cropping: False
 
   first_priority_hyperparams: [
@@ -320,10 +338,13 @@ springCabbage:
 
 chili:
   start_doy: 106
-
+  gdd_method: m2
   base_temperature: 5
   max_dev_temperature: 35
-  growth_gdd: 1000
+  growth_gdd_rule: {
+    ref: harvest_range,
+    index: 1
+  }
 
   first_priority_hyperparams: [
       {
@@ -442,13 +463,14 @@ chili:
 
 corn:
   start_doy: 96
-
+  gdd_method: m2
   base_temperature: 5
   max_dev_temperature: 45
-  growth_gdd: 1400
+  growth_gdd_rule: {
+    ref: harvest_range,
+    index: 0
+  }
   allow_multiple_cropping: True
-
-  harvest_gdd: 1400
 
   first_priority_hyperparams: [
       {
@@ -553,10 +575,13 @@ corn:
 
 garlic:
   start_doy: 269
-
+  gdd_method: m2
   base_temperature: 7.1
   max_dev_temperature: 25
-  growth_gdd: 1000
+  growth_gdd_rule: {
+    ref: harvest_range,
+    index: 0
+  }
 
   first_priority_hyperparams: [
       {
@@ -615,10 +640,13 @@ garlic:
 
 onion:
   start_doy: 238
-
+  gdd_method: m2
   base_temperature: 4.5
   max_dev_temperature: 25
-  growth_gdd: 2092
+  growth_gdd_rule: {
+    ref: harvest_range,
+    index: 0
+  }
 
   first_priority_hyperparams: [
       {
@@ -697,10 +725,13 @@ onion:
 
 potato:
   start_doy: 65
-
+  gdd_method: m2
   base_temperature: 4.5
   max_dev_temperature: 35
-  growth_gdd: 875
+  growth_gdd_rule: {
+    ref: harvest_range,
+    index: 0
+  }
 
   first_priority_hyperparams: [
       {
@@ -787,10 +818,13 @@ potato:
 
 radish:
   start_doy: 30
-
+  gdd_method: m2
   base_temperature: 5
   max_dev_temperature: 35
-  growth_gdd: 850
+  growth_gdd_rule: {
+    ref: harvest_range,
+    index: 0
+  }
 
   high_extrema_temperature: 35
   high_extrema_exposure_days: 5
@@ -818,9 +852,6 @@ radish:
 
 
 rice:
-  gdd_method: m3
-  max_dev_temperature: 40
-
   high_extrema_temperature: 40
   high_extrema_exposure_days: 5
   low_extrema_temperature: 12
@@ -828,10 +859,15 @@ rice:
 
 
 earlyMatureRice:
+  gdd_method: m3
+  max_dev_temperature: 40
   start_doy: 161
-
+  parent_key: rice
   base_temperature: 6
-  growth_gdd: 2400
+  growth_gdd_rule: {
+    ref: harvest_range,
+    index: 0
+  }
 
   first_priority_hyperparams: [
       {
@@ -984,9 +1020,14 @@ earlyMatureRice:
 
 middleLateMatureRice:
   start_doy: 165
-
+  parent_key: rice
+  gdd_method: m3
   base_temperature: 8
-  growth_gdd: 2600
+  max_dev_temperature: 40
+  growth_gdd_rule: {
+    ref: harvest_range,
+    index: 0
+  }
 
   first_priority_hyperparams: [
       {
@@ -1139,9 +1180,14 @@ middleLateMatureRice:
 
 middleMatureRice:
   start_doy: 148
-
+  parent_key: rice
+  gdd_method: m3
+  max_dev_temperature: 40
   base_temperature: 7
-  growth_gdd: 2550
+  growth_gdd_rule: {
+    ref: harvest_range,
+    index: 0
+  }
 
   first_priority_hyperparams: [
       {
@@ -1294,10 +1340,13 @@ middleMatureRice:
 
 sesame:
   start_doy: 126
-
+  gdd_method: m2
   base_temperature: 0
   max_dev_temperature: 30
-  growth_gdd: 1572
+  growth_gdd_rule: {
+    ref: harvest_range,
+    index: 0
+  }
 
   first_priority_hyperparams: [
       {
@@ -1364,7 +1413,10 @@ sweetPotato:
   gdd_method: m3
   base_temperature: 15.5
   max_dev_temperature: 38
-  growth_gdd: 1462
+  growth_gdd_rule: {
+    ref: harvest_range,
+    index: 0
+  }
   allow_multiple_cropping: True
 
   high_extrema_temperature: 32.2
@@ -1407,10 +1459,13 @@ sweetPotato:
 
 wheat:
   start_doy: 284
-
+  gdd_method: m2
   base_temperature: 0
   max_dev_temperature: 32
-  growth_gdd: 1671
+  growth_gdd_rule: {
+    ref: harvest_range,
+    index: 0
+  }
 
   high_extrema_temperature: 32
   high_extrema_exposure_days: 5

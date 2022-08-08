@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 import yaml
@@ -12,10 +11,7 @@ def is_hyperparam_equal(hyperparam1, hyperparam2):
     return type1 == type2 and name1 == name2
 
 
-def write_hidden_file(dir, fname, data):
-    if os.name != 'nt':
-        fname = '.' + fname
-
+def write_file(dir, fname, data):
     with open(Path(dir) / fname, 'w') as f:
         yaml.dump(data, f, default_flow_style=False)
 
