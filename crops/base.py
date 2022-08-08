@@ -25,6 +25,7 @@ class BaseCropModel:
         self.gdd_hyperparams = []
         self.doy_hyperparams = []
         self.first_priority_hyperparams = []
+        self.warning_hyperparams = []
 
         if hasattr(self, 'parent_key'):
             parent_crop_params = parameters.get(self.parent_key, {})
