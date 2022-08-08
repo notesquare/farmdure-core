@@ -181,12 +181,21 @@ class BaseCropModel:
         for param in self.first_priority_hyperparams:
             if param['method'] == 'GDD':
                 event = self.calculate_gdd_hyperparam(param)
-                ret.update({event['type']: event['data']})
+
+                base_type = event['type'].split('_')[0]
+                ret.update({
+                    base_type: event['data'],
+                    base_type + '_range': event['data']
+                })
             elif param['method'] == 'DOY':
                 # NOTE: "ret" will be mutated in loop,
                 # "calculate_doy_hyperparam" method dosn't mutates "ret"
                 event = self.calculate_doy_hyperparam(param, ret)
-                ret.update({event['type']: event['data']})
+                base_type = event['type'].split('_')[0]
+                ret.update({
+                    base_type: event['data'],
+                    base_type + '_range': event['data']
+                })
                 pass
             else:
                 raise NotImplementedError('not implemented')
@@ -395,7 +404,8 @@ class BaseCropModel:
 
         ref_param = None
         for param in self.gdd_hyperparams:
-            if param['type'] == ref:
+            is_type_match = param['type'].split('_')[0] == ref.split('_')[0]
+            if is_type_match is True:
                 ref_param = param
                 break
         ref_val = ref_param['value']
