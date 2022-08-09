@@ -12,7 +12,7 @@ def is_hyperparam_equal(hyperparam1, hyperparam2):
 
 
 def write_file(dir, fname, data):
-    with open(Path(dir) / fname, 'w') as f:
+    with open(Path(dir) / fname, 'w', encoding='utf-8') as f:
         yaml.dump(data, f, default_flow_style=False)
 
     # TODO: hide file in windows
