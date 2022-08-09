@@ -68,10 +68,12 @@ class BaseCropModel:
             for idx, old_param in enumerate(self.gdd_hyperparams):
                 if not is_hyperparam_equal(old_param, new_param):
                     continue
-                self.gdd_hyperparams[idx] = {
-                    **old_param,
-                    **new_param
-                }
+                merged_param = {**old_param, **new_param}
+                # if param has max_period its type should be _range
+                if merged_param.get('max_period', 0) != 0:
+                    merged_param['type'] = \
+                        merged_param['type'].replace('_range', '') + '_range'
+                self.gdd_hyperparams[idx] = merged_param
 
             # TODO: search & udpate doy_hyperparams
 
@@ -79,10 +81,12 @@ class BaseCropModel:
             for idx, old_param in enumerate(self.first_priority_hyperparams):
                 if not is_hyperparam_equal(old_param, new_param):
                     continue
-                self.first_priority_hyperparams[idx] = {
-                    **old_param,
-                    **new_param
-                }
+                merged_param = {**old_param, **new_param}
+                # if param has max_period its type should be _range
+                if merged_param.get('max_period', 0) != 0:
+                    merged_param['type'] = \
+                        merged_param['type'].replace('_range', '') + '_range'
+                self.first_priority_hyperparams[idx] = merged_param
 
     def get_gdd_weather_df(self):
         if self.weather_df is None:
