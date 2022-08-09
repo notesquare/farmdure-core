@@ -1,3 +1,5 @@
+import math
+
 import pandas as pd
 
 from ..utils.helper import is_hyperparam_equal
@@ -119,62 +121,78 @@ class BaseCropModel:
             raise NotImplementedError('Unknown GDD method', gdd_method)
 
         df_next_year = df.copy()
+        df_year_after_next_year = df.copy()
         df_next_year['doy'] += 366
+        df_year_after_next_year['doy'] += 366*2
 
-        ret_df = pd.concat([df, df_next_year], ignore_index=True)
+        ret_df = pd.concat(
+            [df, df_next_year, df_year_after_next_year],
+            ignore_index=True
+        )
         ret_df['tavg_dev_cumsum'] = ret_df['tavg_dev'].cumsum()
         return ret_df.set_index('doy')
 
     def set_start_doy(self, start_doy=None):
-        # Note: sets start_doy then updates end_doy
         if start_doy is None:
             start_doy = self.start_doy
 
-        self.start_doy = start_doy
-        end_doy = self.get_event_end_doy(self.start_doy, self.growth_gdd)
-        self.end_doy = end_doy
-
-    def set_end_doy(self, end_doy):
-        # Note: sets end_doy then updates start_doy
-        self.end_doy = end_doy
-        start_doy = self.get_event_start_doy(self.start_doy, self.growth_gdd)
-        self.start_doy = start_doy
+        end_doy = self.get_event_end_doy(start_doy, self.growth_gdd)
+        if end_doy < 366*2:
+            self.start_doy = start_doy
+            self.end_doy = end_doy
+        else:
+            end_doy = 366*2
+            self.end_doy = end_doy
+            start_doy = self.get_event_start_doy(end_doy, self.growth_gdd)
+            self.start_doy = start_doy
 
     def get_event_end_doy(self, event_base_doy, gdd):
         if self.weather_df is None:
             raise ValueError('weather data not prepared.')
-
         if gdd == 0:
             return event_base_doy
 
-        event_base_doy = max(event_base_doy, 2)
         df = self.gdd_weather_df
-        event_doy = (
-            df['tavg_dev_cumsum'] >= gdd +
-            df.loc[event_base_doy - 1, 'tavg_dev_cumsum']
-        ).idxmax()
 
-        event_doy = int(event_doy)
-        return event_doy
+        min_idx = 1
+        max_idx = len(df)
+        cursor_idx = min(event_base_doy - 1, max_idx)
+        cursor_idx = max(cursor_idx, min_idx)
+
+        event_end_df = (
+            df['tavg_dev_cumsum'] >= gdd +
+            df.loc[cursor_idx, 'tavg_dev_cumsum']
+        )
+
+        if event_end_df.sum() == 0:
+            return math.inf
+        event_end_doy = int(event_end_df.idxmax())
+        return event_end_doy
 
     def get_event_start_doy(self, event_base_doy, gdd):
         if self.weather_df is None:
             raise ValueError('weather data not prepared.')
+        if gdd == 0:
+            return event_base_doy
 
         df = self.gdd_weather_df
-        event_doy = (
+
+        min_idx = 1
+        max_idx = len(df)
+        cursor_idx = min(event_base_doy - 1, max_idx)
+        cursor_idx = max(cursor_idx, min_idx)
+
+        event_start_df = (
             # TODO
             df.loc[event_base_doy: 0: -1, 'tavg_dev'].cumsum() >=
             gdd
-        ).idxmax()
+        )
 
-        event_doy = int(event_doy)
-        return event_doy
-
-    def is_start_doy_possible(self, start_doy):
-        ret = self.min_start_doy <= start_doy and \
-              start_doy <= self.max_start_doy
-        return ret
+        # can't satisfiy condition
+        if event_start_df.sum() == 0:
+            return -math.inf
+        event_start_doy = int(event_start_df.idxmax())
+        return event_start_doy
 
     def calculate_first_priority_params(self):
         ret = {}
@@ -416,10 +434,6 @@ class BaseCropModel:
             return ref_val
 
     @property
-    def start_doy_range(self):
-        return [self.min_start_doy, self.max_start_doy]
-
-    @property
     def growth(self):
         # 작물의 변화 일정
         return {
@@ -501,7 +515,6 @@ class BaseCropModel:
     def attribute(self):
         attribute = {
             'key': self.key,
-            'start_doy_range': self.start_doy_range,
             'allow_multiple_cropping': self.allow_multiple_cropping
         }
         if hasattr(self, 'id'):
