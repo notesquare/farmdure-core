@@ -1,8 +1,10 @@
-import math
-
 import pandas as pd
 
 from ..utils.helper import is_hyperparam_equal
+
+
+DOY_MINIMA = 1
+DOY_MAXIMA = 366 * 2
 
 
 class BaseCropModel:
@@ -144,7 +146,7 @@ class BaseCropModel:
             end_doy = 366*2
             self.end_doy = end_doy
             start_doy = self.get_event_start_doy(end_doy, self.growth_gdd)
-            self.start_doy = start_doy
+            self.start_doy = max(start_doy, 1)
 
     def get_event_end_doy(self, event_base_doy, gdd):
         if self.weather_df is None:
@@ -165,7 +167,7 @@ class BaseCropModel:
         )
 
         if event_end_df.sum() == 0:
-            return math.inf
+            return DOY_MAXIMA
         event_end_doy = int(event_end_df.idxmax())
         return event_end_doy
 
@@ -190,7 +192,7 @@ class BaseCropModel:
 
         # can't satisfiy condition
         if event_start_df.sum() == 0:
-            return -math.inf
+            return DOY_MINIMA
         event_start_doy = int(event_start_df.idxmax())
         return event_start_doy
 
