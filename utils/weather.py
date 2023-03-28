@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import pandas as pd
-import hdf5plugin
+import hdf5plugin  # noqa
 import xarray as xr
 
 
@@ -33,6 +33,7 @@ def get_weather_df_from_climate(coord, scenario='present'):
         x, y = coord
         _ds = ds.sel({'latitude': y, 'longitude': x}, method='nearest')
 
+        # TODO: 평년 = 30년
         if scenario != 'present':
             data = _ds.sel(
                 year=((_ds.year >= int(2030)) & (_ds.year <= int(2050))),

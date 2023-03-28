@@ -1001,8 +1001,7 @@ earlyMatureRice:
           ref: [heading_range, harvest_range],
           value: [10, -7],
           index: [1, 0],
-          water_level: [2, 0],
-          period: 3,
+          water_level: [2, 2],
           expose_to: [water_level]
       },
       {
@@ -1161,8 +1160,7 @@ middleLateMatureRice:
           ref: [heading_range, harvest_range],
           value: [10, -7],
           index: [1, 0],
-          water_level: [2, 0],
-          period: 3,
+          water_level: [2, 2],
           expose_to: [water_level]
       },
       {
@@ -1321,8 +1319,7 @@ middleMatureRice:
           ref: [heading_range, harvest_range],
           value: [10, -7],
           index: [1, 0],
-          water_level: [2, 0],
-          period: 3,
+          water_level: [2, 2],
           expose_to: [water_level]
       },
       {

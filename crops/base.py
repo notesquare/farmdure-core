@@ -289,74 +289,72 @@ class BaseCropModel:
     def get_extreme_temperature_warnings(self, param):
         start_doy = self.start_doy
         end_doy = self.end_doy
-        df = self.gdd_weather_df.copy()
+        df = self.weather_df.copy()
+        n_years = df['year'].nunique()
 
         high_extrema_temperature = param['high_extrema_temperature']
         high_extrema_exposure_days = param['high_extrema_exposure_days']
         low_extrema_temperature = param['low_extrema_temperature']
         low_extrema_exposure_days = param['low_extrema_exposure_days']
 
-        # 1. 한계온도 & 노출일수
+        ret = []
+
         # 생육한계 최고온도 & 노출일수
-        df['high_extrema_exposure'] = \
-            df['tmax'] > high_extrema_temperature
-        df['high_extrema_exposure_group'] = \
-            df['high_extrema_exposure'].diff(1).cumsum()
+        tmax_df = df.copy()[['year', 'doy', 'tmax']]\
+            .sort_values(['year', 'doy'])\
+            .query((f'tmax > {high_extrema_temperature} & '
+                    f'doy >= {start_doy} & doy <= {end_doy}'))
 
-        high_extrema_exposure_doy_ranges = []
-        for idx, group in df.groupby('high_extrema_exposure_group'):
-            high_extrema_col = group['high_extrema_exposure']
+        tmax_df['doy_group'] = (tmax_df['doy'].diff(1).fillna(1) != 1).cumsum()
+        tmax_df['too_much_exposure'] = False
 
-            if (high_extrema_col.all() and high_extrema_col.count()
-                    >= high_extrema_exposure_days):
-                high_extrema_exposure_doy_ranges.append(
-                    [group.index[0], group.index[-1]]
-                )
-        for high_extrema_doy_range in high_extrema_exposure_doy_ranges:
-            intersected_days = min(end_doy, high_extrema_doy_range[1]) \
-                - max(start_doy, high_extrema_doy_range[0])
+        for _, group in tmax_df.groupby('doy_group'):
+            if len(group) >= high_extrema_exposure_days:
+                tmax_df.loc[group.index, 'too_much_exposure'] = True
 
-            if intersected_days >= high_extrema_exposure_days:
-                return [{
-                    'title': '재배가능성 낮음',
-                    'type': '고온해 위험',
-                    'message': f"""생육한계 최고온도 {
-                        high_extrema_temperature
-                    }℃ 초과의 온도에 연속 {
-                        high_extrema_exposure_days
-                    }일 이상 노출되었습니다."""
-                }]
+        _tmax_exposure_df = tmax_df.pivot(
+            index='doy', columns='year', values='too_much_exposure'
+            ).fillna(False).sort_index()
+        tmax_exposure_df = _tmax_exposure_df.sum(axis=1) / n_years
+        if (tmax_exposure_df.loc[start_doy: end_doy] >= 0.3).sum() > 0:
+            ret.append({
+                'title': '재배가능성 낮음',
+                'type': '고온해 위험',
+                'message': f"""생육한계 최고온도 {
+                    high_extrema_temperature
+                }℃ 초과의 온도에 연속 {
+                    high_extrema_exposure_days
+                }일 이상 노출된 년도의 수가 전체 기상자료의 10% 이상입니다."""
+            })
 
         # 생육한계 최저온도 & 노출일수
-        df['low_extrema_exposure'] = \
-            df['tmin'] < low_extrema_temperature
-        df['low_extrema_exposure_group'] = \
-            df['low_extrema_exposure'].diff(1).cumsum()
+        tmin_df = df.copy()[['year', 'doy', 'tmin']]\
+            .sort_values(['year', 'doy'])\
+            .query((f'tmin < {low_extrema_temperature} & '
+                    f'doy >= {start_doy} & doy <= {end_doy}'))
+        tmin_df['doy_group'] = (tmin_df['doy'].diff(1).fillna(1) != 1).cumsum()
+        tmin_df['too_much_exposure'] = False
 
-        low_extrema_exposure_doy_ranges = []
-        for idx, group in df.groupby('low_extrema_exposure_group'):
-            low_extrema_col = group['low_extrema_exposure']
+        for _, group in tmin_df.groupby('doy_group'):
+            if len(group) >= low_extrema_exposure_days:
+                tmin_df.loc[group.index, 'too_much_exposure'] = True
 
-            if (low_extrema_col.all() and low_extrema_col.count()
-                    >= low_extrema_exposure_days):
-
-                low_extrema_exposure_doy_ranges.append(
-                    [group.index[0], group.index[-1]]
-                )
-        for low_extrema_doy_range in low_extrema_exposure_doy_ranges:
-            intersected_days = min(end_doy, low_extrema_doy_range[1]) \
-                - max(start_doy, low_extrema_doy_range[0])
-            if intersected_days >= low_extrema_exposure_days:
-                return [{
+        _tmin_exposure_df = tmin_df.pivot(
+            index='doy', columns='year', values='too_much_exposure'
+            ).fillna(False).sort_index()
+        tmin_exposure_df = _tmin_exposure_df.sum(axis=1) / n_years
+        if (tmin_exposure_df.loc[start_doy: end_doy] >= 0.3).sum() > 0:
+            ret.append({
                     'title': '재배가능성 낮음',
                     'type': '동해 위험',
                     'message': f"""생육한계 최저온도 {
                         low_extrema_temperature
                     }℃ 미만의 온도에 연속 {
                         low_extrema_exposure_days
-                    }일 이상 노출되었습니다."""
-                }]
-        return []
+                    }일 이상 노출된 년도의 수가 전체 기상자료의 30% 이상입니다."""
+                    })
+
+        return ret
 
     def get_milestone_temperature_warnings(self, param):
         df = self.gdd_weather_df.copy()
