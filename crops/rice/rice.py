@@ -80,8 +80,34 @@ class RiceModel(BaseCropModel):
                 continue
             ref = self.calculate_first_priority_params()
 
-            doys = self.calculate_doy_hyperparam(param, ref)['data']
-            levs = param['water_level']
+            period = param.get('period')
+            if period is None:
+                # 일반적인 수위 관리
+                doys = self.calculate_doy_hyperparam(param, ref)['data']
+                levs = param['water_level']
+            else:
+                # 물대기와 물떼기 반복
+                _doys = self.calculate_doy_hyperparam(param, ref)['data']
+                _levs = param['water_level']
+
+                _doys1 = range(
+                    _doys[0],
+                    _doys[1] + 1, period
+                )
+                _doys2 = range(
+                    _doys[0] + period,
+                    _doys[1] + period + 1, period
+                )
+                doys = []
+                for d1, d2 in zip(
+                    _doys1,
+                    _doys2
+                ):
+                    if (d1 >= _doys[1] or
+                            d2 >= _doys[1]):
+                        break
+                    doys.extend([d1, d2])
+                levs = _levs * len(doys)
 
             ret.extend([
                 {'doy': doy, 'waterLevel': level}
