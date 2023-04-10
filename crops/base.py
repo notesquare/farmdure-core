@@ -241,12 +241,24 @@ class BaseCropModel:
                     if event_data[1] - event_data[0] > max_period \
                     else event_data[1]
 
+                # apply limits to doy
+                event_data = [
+                    max(event_data[0], 0),
+                    min(event_data[1], 366 * 2)
+                ]
+
         else:
             event_data = self.get_event_end_doy(start_doy, param['value'])
             if max_period is not None:
                 event_data = [
                     event_data - (max_period // 2 - 2),
                     event_data + (max_period // 2 + 2)
+                ]
+
+                # apply limits to doy
+                event_data = [
+                    max(event_data[0], 0),
+                    min(event_data[1], 366 * 2)
                 ]
 
         event = {
