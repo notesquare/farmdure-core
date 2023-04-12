@@ -31,12 +31,8 @@ class BaseCropModel:
         self.first_priority_hyperparams = []
         self.warning_hyperparams = []
 
-        if hasattr(self, 'parent_key'):
-            parent_crop_params = parameters.get(self.parent_key, {})
-            [setattr(self, k, v) for k, v in parent_crop_params.items()]
-
-        crop_params = parameters.get(self.key, {})
-        for k, v in crop_params.items():
+        # crop_params = parameters.get(self.key, {})
+        for k, v in parameters.items():
             if hasattr(self, k) and isinstance(getattr(self, k), list):
                 # if parameter is already set by parent & is list,
                 # concatenate

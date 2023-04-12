@@ -139,7 +139,7 @@ bean:
   warning_hyperparams: []
 
 
-cabbage:
+cabbage: &cabbage_common
   doy_hyperparams: [
       {
           type: fertilize, name: 기비,
@@ -218,9 +218,10 @@ cabbage:
 
 
 autumnCabbage:
+  <<: *cabbage_common
   start_doy: 245
   gdd_method: m2
-  parent_key: cabbage
+
   base_temperature: 5
   max_dev_temperature: 35
   growth_gdd_rule: {
@@ -277,9 +278,9 @@ autumnCabbage:
 
 
 springCabbage:
+  <<: *cabbage_common
   start_doy: 51
   gdd_method: m2
-  parent_key: cabbage
   base_temperature: 5
   max_dev_temperature: 35
   growth_gdd_rule: {
@@ -851,7 +852,7 @@ radish:
   warning_hyperparams: []
 
 
-rice:
+rice: &rice_common
   high_extrema_temperature: 40
   high_extrema_exposure_days: 5
   low_extrema_temperature: 12
@@ -859,10 +860,10 @@ rice:
 
 
 earlyMatureRice:
+  <<: *rice_common
   gdd_method: m3
   max_dev_temperature: 40
   start_doy: 161
-  parent_key: rice
   base_temperature: 6
   growth_gdd_rule: {
     ref: harvest_range,
@@ -1020,8 +1021,8 @@ earlyMatureRice:
 
 
 middleLateMatureRice:
+  <<: *rice_common
   start_doy: 165
-  parent_key: rice
   gdd_method: m3
   base_temperature: 8
   max_dev_temperature: 40
@@ -1181,8 +1182,8 @@ middleLateMatureRice:
 
 
 middleMatureRice:
+  <<: *rice_common
   start_doy: 148
-  parent_key: rice
   gdd_method: m3
   max_dev_temperature: 40
   base_temperature: 7
