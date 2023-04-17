@@ -479,6 +479,13 @@ class BaseCropModel:
             'data': data
         }
 
+    def parse_params(self, params):
+        for param in params:
+            if isinstance(param, list):
+                yield from param
+            else:
+                yield param
+
     @property
     def events(self):
         events = [self.growth]
@@ -493,7 +500,7 @@ class BaseCropModel:
             events.append(event)
 
         # doy 기반 계산이 필요한 event들 계산
-        for param in self.doy_hyperparams:
+        for param in self.parse_params(self.doy_hyperparams):
             if 'events' not in param['expose_to']:
                 continue
             event = self.calculate_doy_hyperparam(param, ref)
@@ -515,7 +522,7 @@ class BaseCropModel:
             schedules.append(schedule)
 
         # doy 기반 계산이 필요한 event들 계산
-        for param in self.doy_hyperparams:
+        for param in self.parse_params(self.doy_hyperparams):
             if 'schedules' not in param['expose_to']:
                 continue
             schedule = self.calculate_doy_hyperparam(param, ref)
@@ -543,7 +550,7 @@ class BaseCropModel:
     def warnings(self):
         ret_warnings = []
 
-        for param in self.warning_hyperparams:
+        for param in self.parse_params(self.warning_hyperparams):
             method = param['method']
 
             if method == 'temperature_and_exposure':
@@ -587,7 +594,7 @@ class BaseCropModel:
                 'editable': True
             })
 
-        for param in self.doy_hyperparams:
+        for param in self.parse_params(self.doy_hyperparams):
             hyper_params.append({
                 **param,
                 'editable': False
