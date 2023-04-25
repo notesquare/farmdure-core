@@ -74,7 +74,8 @@ class RiceModel(BaseCropModel):
 
     @property
     def water_level(self):
-        ret = []
+        ret = super().water_level
+
         for param in self.doy_hyperparams:
             if 'water_level' not in param['expose_to']:
                 continue
@@ -83,11 +84,11 @@ class RiceModel(BaseCropModel):
             period = param.get('period')
             if period is None:
                 # 일반적인 수위 관리
-                doys = self.calculate_doy_hyperparam(param, ref)['data']
+                doys = self.calculate_doy_hyperparam(param, ref)['doy']
                 levs = param['water_level']
             else:
                 # 물대기와 물떼기 반복
-                _doys = self.calculate_doy_hyperparam(param, ref)['data']
+                _doys = self.calculate_doy_hyperparam(param, ref)['doy']
                 _levs = param['water_level']
 
                 _doys1 = range(

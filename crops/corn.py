@@ -6,3 +6,4 @@ class CornModel(BaseCropModel):
     _type = 'corn'
     color = '#fed55c'
     key = 'corn'
+    allow_multiple_cropping = True

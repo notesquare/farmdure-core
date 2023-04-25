@@ -13,6 +13,16 @@ class BaseCropModel:
     allow_multiple_cropping = False
     max_dev_temperature = 99
 
+    def __dict__(self):
+        # attrs = ['id', 'key', 'start_doy']
+        # props = ['events', 'warnings', 'schedules', 'water_level']
+
+        # attrs_dict = {attr: getattr(self, attr) for attr in attrs}
+        # props_dict = {attr: getattr(self, attr) for attr in props}
+        # return {**attrs_dict, **props_dict}
+        # TODO: make json serializable
+        pass
+
     def __init__(self, id=None):
         self.id = id
         self.weather_df = None
@@ -90,7 +100,7 @@ class BaseCropModel:
 
         # avg. temperature
         _df = self.weather_df.reset_index(drop=True)
-        df = _df.groupby('doy').mean().reset_index()
+        df = _df.groupby('doy').mean(numeric_only=True).reset_index()
 
         gdd_method = self.gdd_method
         if gdd_method == 'm1':
@@ -205,8 +215,8 @@ class BaseCropModel:
 
                 base_type = event['type'].split('_')[0]
                 ret.update({
-                    base_type: event['data'],
-                    base_type + '_range': event['data']
+                    base_type: event['doy'],
+                    base_type + '_range': event['doy']
                 })
             elif param['method'] == 'DOY':
                 # NOTE: "ret" will be mutated in loop,
@@ -214,8 +224,8 @@ class BaseCropModel:
                 event = self.calculate_doy_hyperparam(param, ret)
                 base_type = event['type'].split('_')[0]
                 ret.update({
-                    base_type: event['data'],
-                    base_type + '_range': event['data']
+                    base_type: event['doy'],
+                    base_type + '_range': event['doy']
                 })
                 pass
             else:
@@ -228,45 +238,45 @@ class BaseCropModel:
         # get_event
         max_period = param.get('max_period')
         if isinstance(param['value'], list):
-            event_data = [
+            event_doys = [
                 self.get_event_end_doy(start_doy, val)
                 for val in param['value']
             ]
             if max_period is not None:
-                event_data[1] = event_data[0] + max_period \
-                    if event_data[1] - event_data[0] > max_period \
-                    else event_data[1]
+                event_doys[1] = event_doys[0] + max_period \
+                    if event_doys[1] - event_doys[0] > max_period \
+                    else event_doys[1]
 
                 # apply limits to doy
-                event_data = [
-                    max(event_data[0], 0),
-                    min(event_data[1], 366 * 2)
+                event_doys = [
+                    max(event_doys[0], 0),
+                    min(event_doys[1], 366 * 2)
                 ]
 
         else:
-            event_data = self.get_event_end_doy(start_doy, param['value'])
+            event_doys = self.get_event_end_doy(start_doy, param['value'])
             if max_period is not None:
-                event_data = [
-                    event_data - (max_period // 2 - 2),
-                    event_data + (max_period // 2 + 2)
+                event_doys = [
+                    event_doys - (max_period // 2 - 2),
+                    event_doys + (max_period // 2 + 2)
                 ]
 
                 # apply limits to doy
-                event_data = [
-                    max(event_data[0], 0),
-                    min(event_data[1], 366 * 2)
+                event_doys = [
+                    max(event_doys[0], 0),
+                    min(event_doys[1], 366 * 2)
                 ]
 
         event = {
             'type': param.get('type'),
             'name': param.get('name', ''),
-            'data': event_data,
+            'doy': event_doys,
             'text': param.get('text', '')
         }
         return event
 
     def calculate_doy_hyperparam(self, param, ref_data):
-        event_data = []
+        event_doys = []
 
         n_refs = len(param['ref'])
         for ref, index, val in zip(
@@ -283,13 +293,13 @@ class BaseCropModel:
             else:
                 ret_doy = _ref_data + val
 
-            event_data.append(ret_doy)
+            event_doys.append(ret_doy)
 
-        event_data = event_data[0] if len(event_data) == 1 else event_data
+        event_doys = event_doys[0] if len(event_doys) == 1 else event_doys
         event = {
             'type': param.get('type'),
             'name': param.get('name', ''),
-            'data': event_data,
+            'doy': event_doys,
             'text': param.get('text', '')
         }
         return event
@@ -371,7 +381,7 @@ class BaseCropModel:
         doys = self.calculate_doy_hyperparam(
             param['milestone'],
             ref_data
-        )['data']
+        )['doy']
         cond = param['condition']
 
         variable = cond['variable']
@@ -403,7 +413,7 @@ class BaseCropModel:
         doys = self.calculate_doy_hyperparam(
             param['milestone'],
             ref_data
-        )['data']
+        )['doy']
         milestone_length = doys[1] - doys[0]
         cond = param['condition']
         length = cond['length']
@@ -451,7 +461,7 @@ class BaseCropModel:
         return {
             'type': 'growth_range',
             'name': '재배기간',
-            'data': [self.start_doy, self.end_doy]
+            'doy': [self.start_doy, self.end_doy]
         }
 
     @property
@@ -476,7 +486,7 @@ class BaseCropModel:
         return {
             'type': 'progress',
             'name': '생육진행도',
-            'data': data
+            'doy': data
         }
 
     def parse_params(self, params):
@@ -506,6 +516,10 @@ class BaseCropModel:
             event = self.calculate_doy_hyperparam(param, ref)
             events.append(event)
         return events
+
+    @property
+    def water_level(self):
+        return []
 
     @property
     def schedules(self):

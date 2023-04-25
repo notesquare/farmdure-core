@@ -214,7 +214,6 @@ autumnCabbage:
     ref: harvest_range,
     index: 0
   }
-  allow_multiple_cropping: False
 
   first_priority_hyperparams: [
       {
@@ -273,7 +272,6 @@ springCabbage:
     ref: harvest_range,
     index: 0
   }
-  allow_multiple_cropping: False
 
   first_priority_hyperparams: [
       {
@@ -459,7 +457,6 @@ corn:
     ref: harvest_range,
     index: 0
   }
-  allow_multiple_cropping: True
 
   first_priority_hyperparams: [
       {
@@ -1409,7 +1406,6 @@ sweetPotato:
     ref: harvest_range,
     index: 0
   }
-  allow_multiple_cropping: True
 
   high_extrema_temperature: 32.2
   high_extrema_exposure_days: 15
