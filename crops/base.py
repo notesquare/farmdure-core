@@ -290,6 +290,9 @@ class BaseCropModel:
 
             if index is not None:
                 ret_doy = _ref_data[index] + val
+            elif isinstance(_ref_data, list):
+                _idx = 0 if val < 0 else 1
+                ret_doy = _ref_data[_idx] + val
             else:
                 ret_doy = _ref_data + val
 
