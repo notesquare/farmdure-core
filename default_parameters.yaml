@@ -218,12 +218,12 @@ autumnCabbage:
   first_priority_hyperparams: [
       {
           method: GDD,
-          type: transplant,
+          type: transplant, name: 정식,
           value: 0
       },
       {
           method: GDD,
-          type: harvest_range,
+          type: harvest_range, name: 수확,
           value: 601,
           max_period: 10,
       },
@@ -276,12 +276,12 @@ springCabbage:
   first_priority_hyperparams: [
       {
           method: GDD,
-          type: transplant,
+          type: transplant, name: 정식,
           value: 0
       },
       {
           method: GDD,
-          type: harvest_range,
+          type: harvest_range, name: 수확,
           value: 601,
           max_period: 10,
       },
@@ -336,12 +336,12 @@ chili:
   first_priority_hyperparams: [
       {
           method: GDD,
-          type: transplant,
+          type: transplant, name: 정식,
           value: 0
       },
       {
           method: GDD,
-          type: bloom_range,
+          type: bloom_range, name: 개화,
           value: [150, 1950]
       },
   ]
@@ -461,18 +461,18 @@ corn:
   first_priority_hyperparams: [
       {
           method: GDD,
-          type: sow,
+          type: sow, name: 파종,
           value: 0
       },
       {
           method: GDD,
-          type: silking_range,
+          type: silking_range, name: 출사,
           value: 1049,
           max_period: 14,
       },
       {
           method: DOY,
-          type: tasselling_range,
+          type: tasselling_range, name: 출웅,
           ref: [silking_range, silking_range],
           index: [0, 1],
           value: [-7, -6],
@@ -572,7 +572,7 @@ garlic:
   first_priority_hyperparams: [
       {
           method: GDD,
-          type: harvest_range,
+          type: harvest_range, name: 수확,
           value: 1000,
           max_period: 10,
       },
@@ -637,13 +637,13 @@ onion:
   first_priority_hyperparams: [
       {
           method: GDD,
-          type: harvest_range,
+          type: harvest_range, name: 수확,
           value: [2092, 2352],
           max_period: 30,
       },
       {
           method: DOY,
-          type: oniondevelop_range,
+          type: oniondevelop_range, name: 구비대기,
           ref: [harvest_range, harvest_range],
           index: [0, 1],
           value: [-40, -40],
@@ -722,19 +722,19 @@ potato:
   first_priority_hyperparams: [
       {
           method: GDD,
-          type: transplant_range,
+          type: transplant_range,  name: 정식,
           value: [55, 110],
           max_period: 20,
       },
       {
           method: GDD,
-          type: harvest_range,
+          type: harvest_range, name: 수확,
           value: 875,
           max_period: 10,
       },
       {
           method: DOY,
-          type: potatogrowth_range,
+          type: potatogrowth_range, name: 덩이줄기 비대기,
           ref: [transplant_range, harvest_range],
           index: [1, 0],
           value: [30, -10],
@@ -858,18 +858,18 @@ earlyMatureRice:
   first_priority_hyperparams: [
       {
           method: GDD,
-          type: transplant,
+          type: transplant, name: 이앙,
           value: 0
       },
       {
           method: GDD,
-          type: heading_range,
+          type: heading_range, name: 출수,
           value: [1000, 1200],
           max_period: 20
       },
       {
           method: GDD,
-          type: harvest_range,
+          type: harvest_range, name: 수확,
           value: [2400, 2550],
           max_period: 20
       },
@@ -1019,18 +1019,18 @@ middleLateMatureRice:
   first_priority_hyperparams: [
       {
           method: GDD,
-          type: transplant,
+          type: transplant, name: 이앙,
           value: 0
       },
       {
           method: GDD,
-          type: heading_range,
+          type: heading_range, name: 출수,
           value: 1404,
           max_period: 14
       },
       {
           method: GDD,
-          type: harvest_range,
+          type: harvest_range, name: 수확,
           value: 2600,
           max_period: 10
       },
@@ -1180,18 +1180,18 @@ middleMatureRice:
   first_priority_hyperparams: [
       {
           method: GDD,
-          type: transplant,
+          type: transplant, name: 이앙,
           value: 0
       },
       {
           method: GDD,
-          type: heading_range,
+          type: heading_range, name: 출수,
           value: [1330, 1510],
           max_period: 20
       },
       {
           method: GDD,
-          type: harvest_range,
+          type: harvest_range, name: 수확,
           value: [2500, 2600],
           max_period: 20
       },
@@ -1340,7 +1340,7 @@ sesame:
   first_priority_hyperparams: [
       {
           method: GDD,
-          type: bloom_range,
+          type: bloom_range, name: 개화,
           value: [410, 1110],
           max_period: 40
       },
@@ -1415,7 +1415,8 @@ sweetPotato:
   first_priority_hyperparams: [
       {
           method: GDD,
-          type: transplant, value: 0
+          type: transplant,  name: 삽식,
+          value: 0
       },
   ]
   gdd_hyperparams: [
