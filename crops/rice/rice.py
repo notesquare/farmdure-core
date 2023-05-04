@@ -1,3 +1,5 @@
+import polars as pl
+
 from ..base import BaseCropModel
 
 
@@ -19,23 +21,31 @@ class RiceModel(BaseCropModel):
         if heading_range[1] > 366:
             heading_range = [doy - 366 for doy in heading_range]
 
-        window_size = 40
-        df = self.weather_df.copy()
+        win_size = 40
+        df = self.weather_df
 
-        df['tavg_40days'] = 0.5 * (df['tmax'] + df['tmin'])
-        _df = df.groupby('year')\
-            .rolling(window_size)\
-            .agg({'tavg_40days': 'mean', 'doy': 'min'})\
-            .shift(-window_size+1)
+        heading_df = df.with_columns([
+            ((pl.col('tmax') + pl.col('tmin')) * 0.5)
+            .rolling_mean(window_size=win_size)
+            .shift(-win_size+1)
+            .alias('tavg_40days'),
 
-        heading_df = _df.query((
-            f'doy >= {heading_range[0]} &'
-            f'doy <= {heading_range[1]}'
-        ))
+            pl.col('year')
+            .rolling_mean(window_size=win_size)
+            .shift(-win_size+1)
+            .alias('mean_year')
+        ])\
+            .filter(
+                (pl.col('year') == pl.col('mean_year')) &
+                (pl.col('doy') >= heading_range[0]) &
+                (pl.col('doy') <= heading_range[1])
+            )\
+            .collect()
 
-        safe_heading_df = heading_df.query((
-            '21 <= tavg_40days & tavg_40days <= 24'
-        ))
+        safe_heading_df = heading_df.filter(
+            (pl.col('tavg_40days') >= 21) &
+            (pl.col('tavg_40days') <= 24)
+        )
 
         if len(heading_df) != 0:
             safe_heading_prob = len(safe_heading_df) / len(heading_df) * 100

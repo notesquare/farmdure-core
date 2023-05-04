@@ -1,4 +1,4 @@
-import pandas as pd
+import polars as pl
 
 from ..utils.helper import is_hyperparam_equal
 
@@ -98,51 +98,69 @@ class BaseCropModel:
         if self.weather_df is None:
             raise ValueError('weather data not prepared.')
 
+        weather_df = self.weather_df
         # avg. temperature
-        _df = self.weather_df.reset_index(drop=True)
-        df = _df.groupby('doy').mean(numeric_only=True).reset_index()
+        df = weather_df.groupby('doy').agg([
+                pl.mean('tmin'),
+                pl.mean('tmax')])
 
         gdd_method = self.gdd_method
         if gdd_method == 'm1':
-            df['tavg'] = (df['tmax'] + df['tmin']) / 2
-            df['tavg_dev'] = df['tavg'] - self.base_temperature
-            df['tavg_dev'] = df['tavg_dev'].clip(lower=0)
+            t_b = self.base_temperature
+
+            q = df.with_columns([
+                ((pl.col('tmax') + pl.col('tmin')) / 2).alias('tavg'),
+
+                (((pl.col('tmax') + pl.col('tmin')) / 2) - t_b).clip_min(0)
+                .alias('tavg_dev'),
+            ]).sort('doy')
 
         elif gdd_method == 'm2':
             t_b = self.base_temperature
             t_u = self.max_dev_temperature
 
-            df['tavg'] = (df['tmax'] + df['tmin']) / 2
-            df['tavg_dev'] = df['tavg'].clip(lower=t_b, upper=t_u) - t_b
+            q = df.with_columns([
+                ((pl.col('tmax') + pl.col('tmin')) / 2).alias('tavg'),
+                (
+                    ((pl.col('tmax') + pl.col('tmin')) / 2).clip(t_b, t_u)
+                    - t_b
+                ).alias('tavg_dev'),
+            ]).sort('doy')
 
         elif gdd_method == 'm3':
             t_b = self.base_temperature
             t_u = self.max_dev_temperature
 
-            df['tavg'] = (df['tmax'] + df['tmin']) / 2
-            df['t_m'] = df['tmax'].clip(upper=t_u)
-            df['t_n'] = df['t_m'].clip(lower=t_b)
-            df['tavg_dev'] = (df['t_m'] + df['t_n']) / 2
-
-            df.loc[df['tavg'] < t_b, 'tavg_dev'] = t_b
-            df.loc[df['tavg'] > t_u, 'tavg_dev'] = t_u
-            df['tavg_dev'] = df['tavg_dev'] - t_b
-            df = df.drop(['t_m', 't_n'], axis=1)
+            q = (
+                df.with_columns([
+                    ((pl.col('tmax') + pl.col('tmin')) / 2).alias('tavg'),
+                    pl.col('tmax').clip_max(t_u).alias('t_m'),
+                    pl.col('tmax').clip_max(t_u).clip_min(t_b).alias('t_n')
+                ])
+                .with_columns([
+                    pl.when(pl.col('tavg') < t_b).then(t_b)
+                    .when(pl.col('tavg') > t_u).then(t_u)
+                    .otherwise((pl.col('t_m') + pl.col('t_n')) / 2)
+                    .alias('tavg_dev')
+                ])
+                .select([
+                    pl.col('doy'),
+                    pl.col('tmin'),
+                    pl.col('tmax'),
+                    pl.col('tavg_dev') - t_b,
+                ])
+                .sort('doy')
+            )
 
         else:
             raise NotImplementedError('Unknown GDD method', gdd_method)
 
-        df_next_year = df.copy()
-        df_year_after_next_year = df.copy()
-        df_next_year['doy'] += 366
-        df_year_after_next_year['doy'] += 366*2
+        q_next_year = q.clone().with_columns(pl.col('doy') + 366)
+        q_year_after_next_year = q.clone().with_columns(pl.col('doy') + 366*2)
 
-        ret_df = pd.concat(
-            [df, df_next_year, df_year_after_next_year],
-            ignore_index=True
-        )
-        ret_df['tavg_dev_cumsum'] = ret_df['tavg_dev'].cumsum()
-        return ret_df.set_index('doy')
+        ret_q = pl.concat([q, q_next_year, q_year_after_next_year])\
+            .with_columns(pl.col('tavg_dev').cumsum().alias('tavg_dev_cumsum'))
+        return ret_q
 
     def set_start_doy(self, start_doy=None):
         if start_doy is None:
@@ -164,22 +182,21 @@ class BaseCropModel:
         if gdd == 0:
             return event_base_doy
 
-        df = self.gdd_weather_df
-
-        min_idx = 1
-        max_idx = len(df)
+        min_idx = 0
+        max_idx = 366 * 3 - 1
         cursor_idx = min(event_base_doy - 1, max_idx)
         cursor_idx = max(cursor_idx, min_idx)
 
-        event_end_df = (
-            df['tavg_dev_cumsum'] >= gdd +
-            df.loc[cursor_idx, 'tavg_dev_cumsum']
-        )
+        df = self.gdd_weather_df
+        end_doy = df.slice(cursor_idx, 366*3).filter(
+            pl.col('tavg_dev').cumsum() > gdd
+        ).select(
+            pl.col('doy').first()
+        ).collect()
 
-        if event_end_df.sum() == 0:
+        if len(end_doy) == 0:
             return DOY_MAXIMA
-        event_end_doy = int(event_end_df.idxmax())
-        return event_end_doy
+        return end_doy['doy'].to_numpy()[0] + 1
 
     def get_event_start_doy(self, event_base_doy, gdd):
         if self.weather_df is None:
@@ -189,22 +206,20 @@ class BaseCropModel:
 
         df = self.gdd_weather_df
 
-        min_idx = 1
-        max_idx = len(df)
+        min_idx = 0
+        max_idx = 366 * 3 - 1
         cursor_idx = min(event_base_doy - 1, max_idx)
         cursor_idx = max(cursor_idx, min_idx)
 
-        event_start_df = (
-            # TODO
-            df.loc[event_base_doy: 0: -1, 'tavg_dev'].cumsum() >=
-            gdd
-        )
+        start_doy = df.slice(0, event_base_doy-1).filter(
+            pl.col('tavg_dev').reverse().cumsum() > gdd
+        ).select(
+            pl.col('doy').first()
+        ).collect()
 
-        # can't satisfiy condition
-        if event_start_df.sum() == 0:
+        if len(start_doy) == 0:
             return DOY_MINIMA
-        event_start_doy = int(event_start_df.idxmax())
-        return event_start_doy
+        return event_base_doy - start_doy['doy'].to_numpy()[0]
 
     def calculate_first_priority_params(self):
         ret = {}
@@ -310,8 +325,8 @@ class BaseCropModel:
     def get_extreme_temperature_warnings(self, param):
         start_doy = self.start_doy
         end_doy = self.end_doy
-        df = self.weather_df.copy()
-        n_years = df['year'].nunique()
+        df = self.weather_df
+        n_years = len(df.select(pl.col('year').unique()).collect())
 
         high_extrema_temperature = param['high_extrema_temperature']
         high_extrema_exposure_days = param['high_extrema_exposure_days']
@@ -321,23 +336,25 @@ class BaseCropModel:
         ret = []
 
         # 생육한계 최고온도 & 노출일수
-        tmax_df = df.copy()[['year', 'doy', 'tmax']]\
-            .sort_values(['year', 'doy'])\
-            .query((f'tmax > {high_extrema_temperature} & '
-                    f'doy >= {start_doy} & doy <= {end_doy}'))
+        burn_exposed_years = df.sort(['year', 'doy'])\
+            .filter(
+                (pl.col('tmax') > high_extrema_temperature) &
+                (pl.col('doy') >= start_doy) &
+                (pl.col('doy') <= end_doy)
+            )\
+            .groupby(
+                (pl.col('doy').diff(1).fill_null(1) != 1).cumsum()
+                .alias('consecutive_doys')
+            )\
+            .agg([
+                pl.first('year'),
+                pl.count('doy').alias('exposed_days')
+            ])\
+            .filter(pl.col('exposed_days') >= high_extrema_exposure_days)\
+            .select(pl.col('year').unique())\
+            .collect()
 
-        tmax_df['doy_group'] = (tmax_df['doy'].diff(1).fillna(1) != 1).cumsum()
-        tmax_df['too_much_exposure'] = False
-
-        for _, group in tmax_df.groupby('doy_group'):
-            if len(group) >= high_extrema_exposure_days:
-                tmax_df.loc[group.index, 'too_much_exposure'] = True
-
-        _tmax_exposure_df = tmax_df.pivot(
-            index='doy', columns='year', values='too_much_exposure'
-            ).fillna(False).sort_index()
-        tmax_exposure_df = _tmax_exposure_df.sum(axis=1) / n_years
-        if (tmax_exposure_df.loc[start_doy: end_doy] >= 0.3).sum() > 0:
+        if len(burn_exposed_years) / n_years >= 0.3:
             ret.append({
                 'title': '재배가능성 낮음',
                 'type': '고온해 위험',
@@ -345,40 +362,42 @@ class BaseCropModel:
                     high_extrema_temperature
                 }℃ 초과의 온도에 연속 {
                     high_extrema_exposure_days
-                }일 이상 노출된 년도의 수가 전체 기상자료의 10% 이상입니다."""
+                }일 이상 노출된 년도의 수가 전체 기상자료의 30% 이상입니다."""
             })
 
         # 생육한계 최저온도 & 노출일수
-        tmin_df = df.copy()[['year', 'doy', 'tmin']]\
-            .sort_values(['year', 'doy'])\
-            .query((f'tmin < {low_extrema_temperature} & '
-                    f'doy >= {start_doy} & doy <= {end_doy}'))
-        tmin_df['doy_group'] = (tmin_df['doy'].diff(1).fillna(1) != 1).cumsum()
-        tmin_df['too_much_exposure'] = False
-
-        for _, group in tmin_df.groupby('doy_group'):
-            if len(group) >= low_extrema_exposure_days:
-                tmin_df.loc[group.index, 'too_much_exposure'] = True
-
-        _tmin_exposure_df = tmin_df.pivot(
-            index='doy', columns='year', values='too_much_exposure'
-            ).fillna(False).sort_index()
-        tmin_exposure_df = _tmin_exposure_df.sum(axis=1) / n_years
-        if (tmin_exposure_df.loc[start_doy: end_doy] >= 0.3).sum() > 0:
+        cold_exposed_years = df.sort(['year', 'doy'])\
+            .filter(
+                (pl.col('tmin') < low_extrema_temperature) &
+                (pl.col('doy') >= start_doy) &
+                (pl.col('doy') <= end_doy)
+            )\
+            .groupby(
+                (pl.col('doy').diff(1).fill_null(1) != 1).cumsum()
+                .alias('consecutive_doys')
+            )\
+            .agg([
+                pl.first('year'),
+                pl.count('doy').alias('exposed_days')
+            ])\
+            .filter(pl.col('exposed_days') >= low_extrema_exposure_days)\
+            .select(pl.col('year').unique())\
+            .collect()
+        if len(cold_exposed_years) / n_years >= 0.3:
             ret.append({
-                    'title': '재배가능성 낮음',
-                    'type': '동해 위험',
-                    'message': f"""생육한계 최저온도 {
-                        low_extrema_temperature
-                    }℃ 미만의 온도에 연속 {
-                        low_extrema_exposure_days
-                    }일 이상 노출된 년도의 수가 전체 기상자료의 30% 이상입니다."""
-                    })
+                'title': '재배가능성 낮음',
+                'type': '동해 위험',
+                'message': f"""생육한계 최저온도 {
+                    low_extrema_temperature
+                }℃ 미만의 온도에 연속 {
+                    low_extrema_exposure_days
+                }일 이상 노출된 년도의 수가 전체 기상자료의 30% 이상입니다."""
+            })
 
         return ret
 
     def get_milestone_temperature_warnings(self, param):
-        df = self.gdd_weather_df.copy()
+        df = self.gdd_weather_df
         ref_data = self.calculate_first_priority_params()
 
         doys = self.calculate_doy_hyperparam(
@@ -393,16 +412,25 @@ class BaseCropModel:
 
         if operator == 'ge':
             liability = \
-                (df.loc[doys[0]: doys[1], variable] >=
-                    danger_temperature).sum() > 0
+                df.filter(
+                    (pl.col('doy') >= doys[0]) & (pl.col('doy') <= doys[1]) &
+                    (pl.col(variable) >= danger_temperature)
+                ).collect().shape[0] > 0
+
         elif operator == 'gt':
             liability = \
-                (df.loc[doys[0]: doys[1], variable] >
-                    danger_temperature).sum() > 0
+                df.filter(
+                    (pl.col('doy') >= doys[0]) & (pl.col('doy') <= doys[1]) &
+                    (pl.col(variable) > danger_temperature)
+                ).collect().shape[0] > 0
+
         elif operator == 'eq':
             liability = \
-                (df.loc[doys[0]: doys[1], variable] ==
-                    danger_temperature).sum() > 0
+                df.filter(
+                    (pl.col('doy') >= doys[0]) & (pl.col('doy') <= doys[1]) &
+                    (pl.col(variable) == danger_temperature)
+                ).collect().shape[0] > 0
+
         else:
             raise NotImplementedError('operation not implemented')
 
@@ -471,25 +499,23 @@ class BaseCropModel:
     def progress(self):
         df = self.gdd_weather_df
         _doy = max(self.start_doy - 1, 1)
-        starting_cummulative_temperature = \
-            df.loc[_doy, 'tavg_dev_cumsum']
-        progress = (
-            df['tavg_dev_cumsum'] - starting_cummulative_temperature
-        ) / self.growth_gdd
+        ret = df.filter(
+            (pl.col('doy') >= _doy) & (pl.col('doy') <= self.end_doy)
+        )\
+            .select([
+                pl.col('doy'),
 
-        data = progress\
-            .loc[_doy: self.end_doy]\
-            .astype('f8')\
-            .round(2)\
-            .clip(upper=1.)\
-            .drop_duplicates(keep='first')\
-            .rename('progress')\
-            .reset_index()\
-            .to_dict('records')
+                (pl.col('tavg_dev').cumsum() / self.growth_gdd)
+                .clip_max(1).round(2).alias('progress')
+            ])\
+            .unique(subset=['progress'])\
+            .sort('doy')\
+            .collect()
+
         return {
             'type': 'progress',
             'name': '생육진행도',
-            'doy': data
+            'doy': ret['doy'].to_list()
         }
 
     def parse_params(self, params):

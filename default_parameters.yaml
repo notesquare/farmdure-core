@@ -916,8 +916,8 @@ earlyMatureRice:
           ref: [transplant],
           value: [12],
           text: '
-                  기비와 수비의 비율을 7:3으로 할 경우,
-                  분얼비는 생략가능합니다.
+                기비와 수비의 비율을 7:3으로 할 경우,
+                분얼비는 생략가능합니다.
               ',
           expose_to: [schedules]
       },
@@ -1077,8 +1077,8 @@ middleLateMatureRice:
           ref: [transplant],
           value: [12],
           text: '
-                  기비와 수비의 비율을 7:3으로 할 경우,
-                  분얼비는 생략가능합니다.
+                기비와 수비의 비율을 7:3으로 할 경우,
+                분얼비는 생략가능합니다.
               ',
           expose_to: [schedules]
       },
@@ -1238,8 +1238,8 @@ middleMatureRice:
           ref: [transplant],
           value: [12],
           text: '
-                  기비와 수비의 비율을 7:3으로 할 경우,
-                  분얼비는 생략가능합니다.
+                기비와 수비의 비율을 7:3으로 할 경우,
+                분얼비는 생략가능합니다.
               ',
           expose_to: [schedules]
       },
