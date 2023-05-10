@@ -1,3 +1,5 @@
+from operator import itemgetter
+
 import polars as pl
 
 from ..base import BaseCropModel
@@ -18,8 +20,9 @@ class RiceModel(BaseCropModel):
 
         ref = self.calculate_first_priority_params()
         heading_range = ref.get('heading_range')
-        if heading_range[1] > 366:
-            heading_range = [doy - 366 for doy in heading_range]
+
+        if not isinstance(heading_range, list):
+            heading_range = [heading_range] * 2
 
         win_size = 40
         df = self.weather_df
@@ -37,8 +40,8 @@ class RiceModel(BaseCropModel):
         ])\
             .filter(
                 (pl.col('year') == pl.col('mean_year')) &
-                (pl.col('doy') >= heading_range[0]) &
-                (pl.col('doy') <= heading_range[1])
+                (pl.col('doy') >= heading_range[0] % 366 + 1) &
+                (pl.col('doy') <= heading_range[1] % 366 + 1)
             )\
             .collect()
 
@@ -124,4 +127,5 @@ class RiceModel(BaseCropModel):
                 {'doy': doy, 'waterLevel': level}
                 for doy, level in zip(doys, levs)
             ])
-        return ret
+            sorted_ret = sorted(ret, key=itemgetter('doy'))
+        return sorted_ret

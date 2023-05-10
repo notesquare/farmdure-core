@@ -30,9 +30,8 @@ adzuki:
           expose_to: [events]
       },
       {
-          type: harvest_range, name: 수확,
+          type: harvest, name: 수확,
           value: 2300,
-          max_period: 10,
           text: '',
           expose_to: [events, schedules]
       },
@@ -128,9 +127,8 @@ bean:
           expose_to: [events]
       },
       {
-          type: harvest_range, name: 수확,
+          type: harvest, name: 수확,
           value: 2700,
-          max_period: 10,
           text: '',
           expose_to: [events, schedules]
       },
@@ -176,33 +174,6 @@ _cabbage_common_warning_hyperparams: &cabbage_common_warning_hyperparams
     high_extrema_exposure_days: 5
     low_extrema_temperature: 5
     low_extrema_exposure_days: 5
-  -
-    method: milestone_length_condition
-    milestone:
-      ref: [transplant, harvest_range]
-      index: [null, 0]
-      value: [0, 0]
-    condition:
-      length: 75
-      operator: ge
-    warning_data:
-      title: 재배가능성 낮음
-      type: 재배불가능
-      message: '최대 생육기간 75일 이상입니다.'
-  -
-    method: milestone_length_condition
-    milestone:
-      ref: [transplant, harvest_range]
-      index: [null, 1]
-      value: [0, 0]
-    condition:
-      length: 45
-      operator: le
-    warning_data:
-      title: 재배가능성 낮음
-      type: 재배불가능
-      message: '최소 생육기간 45일 이하입니다.'
-
 
 autumnCabbage:
   start_doy: 245
@@ -224,8 +195,7 @@ autumnCabbage:
       {
           method: GDD,
           type: harvest_range, name: 수확,
-          value: 601,
-          max_period: 10,
+          value: [725, 870],
       },
   ]
   gdd_hyperparams: [
@@ -261,7 +231,32 @@ autumnCabbage:
       expose_to: [events, schedules]
   warning_hyperparams:
     - *cabbage_common_warning_hyperparams
-
+    -
+        method: milestone_length_condition
+        milestone:
+            ref: [transplant, harvest_range]
+            index: [null, 0]
+            value: [0, 0]
+        condition:
+            length: 75
+            operator: ge
+        warning_data:
+            title: 재배가능성 낮음
+            type: 재배불가능
+            message: '최대 생육기간 75일 이상입니다.'
+    -
+        method: milestone_length_condition
+        milestone:
+            ref: [transplant, harvest_range]
+            index: [null, 1]
+            value: [0, 0]
+        condition:
+            length: 45
+            operator: le
+        warning_data:
+            title: 재배가능성 낮음
+            type: 재배불가능
+            message: '최소 생육기간 45일 이하입니다.'
 
 springCabbage:
   start_doy: 51
@@ -269,8 +264,7 @@ springCabbage:
   base_temperature: 5
   max_dev_temperature: 35
   growth_gdd_rule: {
-    ref: harvest_range,
-    index: 0
+    ref: harvest,
   }
 
   first_priority_hyperparams: [
@@ -281,9 +275,8 @@ springCabbage:
       },
       {
           method: GDD,
-          type: harvest_range, name: 수확,
+          type: harvest, name: 수확,
           value: 601,
-          max_period: 10,
       },
   ]
   gdd_hyperparams: [
@@ -301,9 +294,8 @@ springCabbage:
           expose_to: [events]
       },
       {
-          type: harvest_range, name: 수확,
+          type: harvest, name: 수확,
           value: 601,
-          max_period: 10,
           text: '',
           expose_to: [events, schedules]
       },
@@ -320,8 +312,30 @@ springCabbage:
 
   warning_hyperparams:
     - *cabbage_common_warning_hyperparams
-
-
+    -
+        method: milestone_length_condition
+        milestone:
+            ref: [transplant, harvest]
+            value: [0, 0]
+        condition:
+            length: 75
+            operator: ge
+        warning_data:
+            title: 재배가능성 낮음
+            type: 재배불가능
+            message: '최대 생육기간 75일 이상입니다.'
+    -
+        method: milestone_length_condition
+        milestone:
+            ref: [transplant, harvest]
+            value: [0, 0]
+        condition:
+            length: 45
+            operator: le
+        warning_data:
+            title: 재배가능성 낮음
+            type: 재배불가능
+            message: '최소 생육기간 45일 이하입니다.'
 
 chili:
   start_doy: 106
@@ -454,8 +468,7 @@ corn:
   base_temperature: 5
   max_dev_temperature: 45
   growth_gdd_rule: {
-    ref: harvest_range,
-    index: 0
+    ref: harvest,
   }
 
   first_priority_hyperparams: [
@@ -466,15 +479,13 @@ corn:
       },
       {
           method: GDD,
-          type: silking_range, name: 출사,
+          type: silking, name: 출사,
           value: 1049,
-          max_period: 14,
       },
       {
           method: DOY,
           type: tasselling_range, name: 출웅,
-          ref: [silking_range, silking_range],
-          index: [0, 1],
+          ref: [silking, silking],
           value: [-7, -6],
       },
   ]
@@ -486,16 +497,14 @@ corn:
           expose_to: [events, schedules]
       },
       {
-          type: silking_range, name: 출사,
+          type: silking, name: 출사,
           value: 1049,
-          max_period: 14,
           text: '',
           expose_to: [events]
       },
       {
-          type: harvest_range, name: 수확,
+          type: harvest, name: 수확,
           value: 1400,
-          max_period: 10,
           text: '',
           expose_to: [events, schedules]
       },
@@ -503,8 +512,7 @@ corn:
   doy_hyperparams: [
       {
           type: tasselling_range, name: 출웅,
-          ref: [silking_range, silking_range],
-          index: [0, 1],
+          ref: [silking, silking],
           value: [-7, -6],
           expose_to: [],
       },
@@ -565,16 +573,15 @@ garlic:
   base_temperature: 7.1
   max_dev_temperature: 25
   growth_gdd_rule: {
-    ref: harvest_range,
+    ref: harvest,
     index: 0
   }
 
   first_priority_hyperparams: [
       {
           method: GDD,
-          type: harvest_range, name: 수확,
+          type: harvest, name: 수확,
           value: 1000,
-          max_period: 10,
       },
   ]
   gdd_hyperparams: [
@@ -585,9 +592,8 @@ garlic:
           expose_to: [events, schedules]
       },
       {
-          type: harvest_range, name: 수확,
+          type: harvest, name: 수확,
           value: 1000,
-          max_period: 10,
           text: '',
           expose_to: [events, schedules]
       },
@@ -604,8 +610,7 @@ garlic:
       {
           method: milestone_and_temperature_condition,
           milestone: {
-              ref: [harvest_range, harvest_range],
-              index: [0, 0],
+              ref: [harvest, harvest],
               value: [-120, 60]
 
 
@@ -715,8 +720,7 @@ potato:
   base_temperature: 4.5
   max_dev_temperature: 35
   growth_gdd_rule: {
-    ref: harvest_range,
-    index: 0
+    ref: harvest,
   }
 
   first_priority_hyperparams: [
@@ -728,14 +732,13 @@ potato:
       },
       {
           method: GDD,
-          type: harvest_range, name: 수확,
+          type: harvest, name: 수확,
           value: 875,
-          max_period: 10,
       },
       {
           method: DOY,
           type: potatogrowth_range, name: 덩이줄기 비대기,
-          ref: [transplant_range, harvest_range],
+          ref: [transplant_range, harvest],
           index: [1, 0],
           value: [30, -10],
       }
@@ -755,7 +758,7 @@ potato:
           expose_to: [events, schedules]
       },
       {
-          type: harvest_range, name: 수확,
+          type: harvest, name: 수확,
           value: 875,
           max_period: 10,
           text: '',
@@ -765,7 +768,7 @@ potato:
   doy_hyperparams: [
       {
           type: potatogrowth_range, name: 덩이줄기 비대기,
-          ref: [transplant_range, harvest_range],
+          ref: [transplant_range, harvest],
           index: [1, 0],
           value: [30, -10],
           expose_to: [],
@@ -808,8 +811,7 @@ radish:
   base_temperature: 5
   max_dev_temperature: 35
   growth_gdd_rule: {
-    ref: harvest_range,
-    index: 0
+    ref: harvest
   }
 
   high_extrema_temperature: 35
@@ -826,9 +828,8 @@ radish:
           expose_to: [events, schedules]
       },
       {
-          type: harvest_range, name: 수확,
+          type: harvest, name: 수확,
           value: 850,
-          max_period: 10,
           text: '',
           expose_to: [events, schedules]
       },
@@ -1012,8 +1013,7 @@ middleLateMatureRice:
   base_temperature: 8
   max_dev_temperature: 40
   growth_gdd_rule: {
-    ref: harvest_range,
-    index: 0
+    ref: harvest,
   }
 
   first_priority_hyperparams: [
@@ -1025,14 +1025,12 @@ middleLateMatureRice:
       {
           method: GDD,
           type: heading_range, name: 출수,
-          value: 1404,
-          max_period: 14
+          value: [1404, 1504],
       },
       {
           method: GDD,
-          type: harvest_range, name: 수확,
+          type: harvest, name: 수확,
           value: 2600,
-          max_period: 10
       },
   ]
   gdd_hyperparams: [
@@ -1044,15 +1042,13 @@ middleLateMatureRice:
       },
       {
           type: heading_range, name: 출수,
-          value: 1404,
-          max_period: 14,
+          value: [1404, 1504],
           text: '',
           expose_to: [events]
       },
       {
-          type: harvest_range, name: 수확,
+          type: harvest, name: 수확,
           value: 2600,
-          max_period: 10,
           text: '',
           expose_to: [events, schedules]
       },
@@ -1146,18 +1142,17 @@ middleLateMatureRice:
       },
       {
           type: irragation_range, name: 등숙기,
-          ref: [heading_range, harvest_range],
+          ref: [heading_range, harvest],
           value: [10, -10],
-          index: [0, 0],
+          index: [0, null],
           water_level: [8, 8],
           period: 3,
           expose_to: [water_level]
       },
       {
           type: irragation_range, name: 완전물떼기,
-          ref: [harvest_range, harvest_range],
+          ref: [harvest, harvest],
           value: [-10, 0],
-          index: [0, 0],
           water_level: [0, 0],
           expose_to: [water_level]
       },
@@ -1333,8 +1328,7 @@ sesame:
   base_temperature: 0
   max_dev_temperature: 30
   growth_gdd_rule: {
-    ref: harvest_range,
-    index: 0
+    ref: harvest,
   }
 
   first_priority_hyperparams: [
@@ -1360,9 +1354,8 @@ sesame:
           expose_to: [events]
       },
       {
-          type: harvest_range, name: 수확,
+          type: harvest, name: 수확,
           value: 1572,
-          max_period: 10,
           text: '',
           expose_to: [events, schedules]
       },
@@ -1403,7 +1396,7 @@ sweetPotato:
   base_temperature: 15.5
   max_dev_temperature: 38
   growth_gdd_rule: {
-    ref: harvest_range,
+    ref: harvest,
     index: 0
   }
 
@@ -1427,9 +1420,8 @@ sweetPotato:
           expose_to: [events, schedules]
       },
       {
-          type: harvest_range, name: 수확,
+          type: harvest, name: 수확,
           value: 1462,
-          max_period: 10,
           text: '',
           expose_to: [events, schedules]
       },

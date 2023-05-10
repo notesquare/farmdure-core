@@ -75,24 +75,18 @@ class BaseCropModel:
                 if not is_hyperparam_equal(old_param, new_param):
                     continue
                 merged_param = {**old_param, **new_param}
-                # if param has max_period its type should be _range
-                if merged_param.get('max_period', 0) != 0:
-                    merged_param['type'] = \
-                        merged_param['type'].replace('_range', '') + '_range'
                 self.gdd_hyperparams[idx] = merged_param
 
-            # TODO: search & udpate doy_hyperparams
+            # search & udpate doy_hyperparams
 
             # search & udpate refernce_hyperparams(first priority hyperparams)
             for idx, old_param in enumerate(self.first_priority_hyperparams):
                 if not is_hyperparam_equal(old_param, new_param):
                     continue
                 merged_param = {**old_param, **new_param}
-                # if param has max_period its type should be _range
-                if merged_param.get('max_period', 0) != 0:
-                    merged_param['type'] = \
-                        merged_param['type'].replace('_range', '') + '_range'
                 self.first_priority_hyperparams[idx] = merged_param
+
+            # search & update warning_hyperparams
 
     def get_gdd_weather_df(self):
         if self.weather_df is None:
@@ -242,7 +236,6 @@ class BaseCropModel:
                     base_type: event['doy'],
                     base_type + '_range': event['doy']
                 })
-                pass
             else:
                 raise NotImplementedError('not implemented')
         return ret
@@ -251,36 +244,25 @@ class BaseCropModel:
         start_doy = self.start_doy
 
         # get_event
-        max_period = param.get('max_period')
-        if isinstance(param['value'], list):
+        if param['type'].endswith('range'):
+            max_period = param.get('max_period')
+            max_period = 999 if max_period is None else max_period
             event_doys = [
                 self.get_event_end_doy(start_doy, val)
                 for val in param['value']
             ]
-            if max_period is not None:
-                event_doys[1] = event_doys[0] + max_period \
-                    if event_doys[1] - event_doys[0] > max_period \
-                    else event_doys[1]
+            event_doys[1] = event_doys[0] + max_period \
+                if event_doys[1] - event_doys[0] > max_period \
+                else event_doys[1]
 
-                # apply limits to doy
-                event_doys = [
-                    max(event_doys[0], 0),
-                    min(event_doys[1], 366 * 2)
-                ]
+            # apply limits to doy
+            event_doys = [
+                max(event_doys[0], 0),
+                min(event_doys[1], 366 * 2)
+            ]
 
         else:
             event_doys = self.get_event_end_doy(start_doy, param['value'])
-            if max_period is not None:
-                event_doys = [
-                    event_doys - (max_period // 2 - 2),
-                    event_doys + (max_period // 2 + 2)
-                ]
-
-                # apply limits to doy
-                event_doys = [
-                    max(event_doys[0], 0),
-                    min(event_doys[1], 366 * 2)
-                ]
 
         event = {
             'type': param.get('type'),
@@ -303,11 +285,11 @@ class BaseCropModel:
             if _ref_data is None:
                 raise ValueError('Failed to get preceding calculation results')
 
-            if index is not None:
+            if isinstance(_ref_data, list):
+                if index is None:
+                    index = 0 if val < 0 else 1
                 ret_doy = _ref_data[index] + val
-            elif isinstance(_ref_data, list):
-                _idx = 0 if val < 0 else 1
-                ret_doy = _ref_data[_idx] + val
+
             else:
                 ret_doy = _ref_data + val
 
