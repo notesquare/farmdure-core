@@ -5,16 +5,15 @@
         src='./docs/icon.png'
     >
 </p>
-# FarmDure
 
+# FarmDure
 ## 개요
 
-GDD 기반 영농관리정보, 기상관측 자료를 통해 특정 기후에서 작물의 재배일정 변화를 테스트할 수 있는 농작물 시뮬레이터
-농촌진흥청과 공동개발
+GDD 기반 작물 재배 스케쥴러
 
-### 필요한 데이터 및 코드화
-영농관리 필수적인 GDD기반 데이터 코드화
-- 작물정보(17가지 작물)
+### 특징
+기본 기능
+- 17가지 작물 모델 제공
     - 고추, 밀, 보리, 배추(봄배추,가을배추), 옥수수, 고구마, 벼(중만생종, 중새종 조생종), 감자, 마늘, 양파, 무, 참깨, 콩, 팥
 - [GDD 계산 방법 보기](./docs/gdd.md)
 - YAML 포맷 사용하여 코드화
@@ -119,53 +118,72 @@ crop_model.update_parameters([
 기상 데이터, 작물 모델 파라미터를 입력하여 생육과정을 시뮬레이션 하기 위한 객체.
 * Parameters
     - id: string
-    작물 모델 식별을 위한 식별자
+    
+        작물 모델 식별을 위한 식별자
 
 * Attributes
     - id
     - growth: object
-    전체 재배기간 정보
+
+        전체 재배기간 정보
     - parameters: [object]
-    작물 모델의 파라미터.
-    파라미터에 대한 상세한 설명은 아래 "yaml 파일 작성 요령" 중
-    "GDD 값 기준 파라미터 예시 및 작성 요령" 와 "날짜 기준 파라미터 예시 및 작성 요령" 을 참조.
+
+        작물 모델의 파라미터.
+        파라미터에 대한 상세한 설명은 아래 "yaml 파일 작성 요령" 중
+        "GDD 값 기준 파라미터 예시 및 작성 요령" 와 "날짜 기준 파라미터 예시 및 작성 요령" 을 참조.
 
     - attribute: object
-    작물 모델의 속성.
-    key, allow_multiple_cropping, id, name, type, color 의 정보를 제공하며
-    각각 작물키, 다회작 가능여부, 부여된 식별자, 작물 이름, 작물 종, 작물 대표색을 의미함.
+
+        작물 모델의 속성.
+        key, allow_multiple_cropping, id, name, type, color 의 정보를 제공하며
+        각각 작물키, 다회작 가능여부, 부여된 식별자, 작물 이름, 작물 종, 작물 대표색을 의미함.
+    
     - events: [object]
-    작물 모델의 시뮬레이션 결과로 도출된 생육과정의 리스트.
-    각 생육과정은 type, name, doy, text, doy의 정보를 가지며,
-    doy는 생육과정의 날짜를 나타내고 나머지 항목들은 작물 모델 파라미터의 그것과 동일
+
+        작물 모델의 시뮬레이션 결과로 도출된 생육과정의 리스트.
+        각 생육과정은 type, name, doy, text, doy의 정보를 가지며,
+        doy는 생육과정의 날짜를 나타내고 나머지 항목들은 작물 모델 파라미터의 그것과 동일
+    
     - schedules: [object]
-    작물 모델의 시뮬레이션 결과로 도출된 농작업 일정의 리스트.
-    각 농작업 일정은 type, name, doy, text, doy의 정보를 가지며,
-    doy는 생육과정의 날짜를 나타내고 나머지 항목들은 작물 모델 파라미터의 그것과 동일
+
+        작물 모델의 시뮬레이션 결과로 도출된 농작업 일정의 리스트.
+        각 농작업 일정은 type, name, doy, text, doy의 정보를 가지며,
+        doy는 생육과정의 날짜를 나타내고 나머지 항목들은 작물 모델 파라미터의 그것과 동일
+    
     - warnings: [object]
-    작물 모델의 시뮬레이션 결과로 도출된 경고 리스트.
-    각 경고 정보는 title, type, message 의 정보를 가지며 이들은 모두 문자열 타입임
+
+        작물 모델의 시뮬레이션 결과로 도출된 경고 리스트.
+        각 경고 정보는 title, type, message 의 정보를 가지며 이들은 모두 문자열 타입임
+    
     - water_level: [object]
-    작물 모델의 시뮬레이션 결과로 도출된 관개 정보 리스트.
-    각 관개 정보 doy, waterLevel 의 정보를 가지며 doy는 1부터 366까지의 숫자인 1년 중의 날짜를 가리키며
-    waterLevel은 수위를 cm 단위로 표시함.
+    
+        작물 모델의 시뮬레이션 결과로 도출된 관개 정보 리스트.
+        각 관개 정보 doy, waterLevel 의 정보를 가지며 doy는 1부터 366까지의 숫자인 1년 중의 날짜를 가리키며
+        waterLevel은 수위를 cm 단위로 표시함.
 
 * Methods
     - set_parameters(parameters)
-    작물 모델의 파라미터를 결정함.
-    parameters는 상기 "Attributes" 항목의 것과 동일.
+
+        작물 모델의 파라미터를 결정함.
+        parameters는 상기 "Attributes" 항목의 것과 동일.
+    
     - update_parameters(parameters)
-    작물 모델의 파라미터 중 일부를 갱신함.
-    parameters는 상기 "Attributes" 항목의 것과 동일하며
-    업데이트 대상 parameter 는 type 과 name 의 동일성을 기준으로 선택함
+  
+        작물 모델의 파라미터 중 일부를 갱신함.
+        parameters는 상기 "Attributes" 항목의 것과 동일하며
+        업데이트 대상 parameter 는 type 과 name 의 동일성을 기준으로 선택함
+    
     - set_weather_data(weather_df)
-    작물 모델의 시뮬레이션에 필요한 기상데이터.
-    기상데이터는 farmdure.utils.weather 모듈의 get_sample_weather_data 함수로 획득하거나
-    http://farmdure.notesquare.co.kr/ 에서 원하는 획득 가능
+    
+        작물 모델의 시뮬레이션에 필요한 기상데이터.
+        기상데이터는 farmdure.utils.weather 모듈의 get_sample_weather_data 함수를 호출하여 샘플 자료를 획득하거나
+        http://farmdure.notesquare.co.kr/ 에서 원하는 자료를 내려받는 것이 가능
+    
     - set_start_doy(start_doy=None)
-    작물 모델의 재배 시작일로 파종일 또는 정식일인 경우가 일반적임.
-    start_doy가 주어지지 않을 경우 작물 모델의 기본 재배시작일을 사용함.
-    해당 메써드를 호출함으로써 시뮬레이션을 수행할 수 있음.
+
+        작물 모델의 재배 시작일로 파종일 또는 정식일인 경우가 일반적임.
+        start_doy가 주어지지 않을 경우 작물 모델의 기본 재배시작일을 사용함.
+        해당 메써드를 호출함으로써 시뮬레이션을 수행할 수 있음.
 
 #### 전체 작물 모델 상속 관계
 ![Alt text](docs/inherit.png)
