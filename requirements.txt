@@ -1,3 +1,0 @@
-websockets
-numpy
-polars == 0.17.11

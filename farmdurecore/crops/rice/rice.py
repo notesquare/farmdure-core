@@ -19,10 +19,10 @@ class RiceModel(BaseCropModel):
         high_heading_temp = 24
 
         ref = self.calculate_first_priority_params()
-        heading_range = ref.get('heading_range')
+        heading = ref.get('heading')
 
-        if not isinstance(heading_range, list):
-            heading_range = [heading_range] * 2
+        if not isinstance(heading, list):
+            heading = [heading] * 2
 
         win_size = 40
         df = self.weather_df
@@ -40,8 +40,8 @@ class RiceModel(BaseCropModel):
         ])\
             .filter(
                 (pl.col('year') == pl.col('mean_year')) &
-                (pl.col('doy') >= heading_range[0] % 366 + 1) &
-                (pl.col('doy') <= heading_range[1] % 366 + 1)
+                (pl.col('doy') >= heading[0] % 366 + 1) &
+                (pl.col('doy') <= heading[1] % 366 + 1)
             )\
             .collect()
 

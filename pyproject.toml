@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "farmdurecore"
+keywords=["notesqaure", "노트스퀘어", "농진청", "팜두레", "farmdure"]
+
+requires-python = ">=3.8"
+dynamic = ["version"]
+dependencies = [
+    "numpy==1.24.*",
+    "polars==0.18.*",
+    "pyyaml==6.*"
+]
+
+[tool.setuptools.packages.find]
+include = ["farmdurecore*"]
+
+[tool.setuptools.package-data]
+farmdurecore = ["*.yaml", "*.csv"]
+
+[tool.setuptools_scm]
+write_to = "farmdurecore/_version.py"

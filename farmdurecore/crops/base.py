@@ -1,6 +1,13 @@
+import pprint
+from collections import OrderedDict
+
 import polars as pl
 
-from ..utils.helper import is_hyperparam_equal
+from ..utils.helper import is_hyperparam_equal, is_hyperparam_valid
+from ..utils.profiler import (
+    profile_gdd_hyperparams, profile_doy_hyperparams,
+    profile_warning_hyperparams
+)
 
 
 DOY_MINIMA = 1
@@ -13,22 +20,61 @@ class BaseCropModel:
     allow_multiple_cropping = False
     max_dev_temperature = 99
 
-    def __dict__(self):
-        # attrs = ['id', 'key', 'start_doy']
-        # props = ['events', 'warnings', 'schedules', 'water_level']
-
-        # attrs_dict = {attr: getattr(self, attr) for attr in attrs}
-        # props_dict = {attr: getattr(self, attr) for attr in props}
-        # return {**attrs_dict, **props_dict}
-        # TODO: make json serializable
-        pass
-
-    def __init__(self, id=None):
+    def __init__(self, id: str = None):
         self.id = id
         self.weather_df = None
         self.gdd_weather_df = None
         self.min_start_doy = 0
         self.max_start_doy = 366
+
+    def __repr__(self):
+        attr_repr = f"""
+                작물키: {self.key}
+                작물명: {self.name}
+                GDD 계산법: {self.gdd_method}
+                기준온도: {self.base_temperature}
+                최고생육온도: {self.max_dev_temperature}"""
+        gdd_repr = [
+            f"""
+                구분: {prof['name']}
+                GDD 값: {prof['value']}
+                기간제한: {prof.get('period', '')}
+                상세내용: {prof.get('text', '')}
+                카테고리: {prof.get('expose_to', '')}
+            """
+            for prof in profile_gdd_hyperparams(self)
+        ]
+
+        doy_repr = [
+            f"""
+                구분: {prof['name']}
+                기준일: {prof['value']}
+                기간제한: {prof.get('period', '')}
+                상세내용: {prof.get('text', '')}
+                카테고리: {prof.get('expose_to', '')}
+            """
+            for prof in profile_doy_hyperparams(self)
+        ]
+
+        warning_repr = [
+            f"""
+                방식: {prof['method']}
+                구분: {prof['name']}
+                상세내용: {prof.get('text', '')}
+            """
+            for prof in profile_warning_hyperparams(self)
+        ]
+
+        attr_repr = f"기본정보 {attr_repr}"
+        gdd_repr = f"GDD 기반 조건 {''.join(gdd_repr)}" \
+            if len(gdd_repr) != 0 else ''
+        doy_repr = f"날짜 기반 조건 {''.join(doy_repr)}" \
+            if len(doy_repr) != 0 else ''
+        warning_repr = f"경고 표시 조건 {''.join(warning_repr)}" \
+            if len(warning_repr) != 0 else ''
+
+        ret = f'{attr_repr}\n{gdd_repr}\n{doy_repr}\n{warning_repr}\n'
+        return ret
 
     def set_parameters(self, parameters):
         # TODO: remove previous parameters
@@ -74,10 +120,20 @@ class BaseCropModel:
             for idx, old_param in enumerate(self.gdd_hyperparams):
                 if not is_hyperparam_equal(old_param, new_param):
                     continue
+
                 merged_param = {**old_param, **new_param}
+                if (new_param.get('ranged') is False and
+                        'period' in merged_param):
+                    del merged_param['period']
+
+                if not is_hyperparam_valid(merged_param):
+                    print('not valid')
+                    break
+
                 self.gdd_hyperparams[idx] = merged_param
 
             # search & udpate doy_hyperparams
+            # TODO: Not Implemented yet
 
             # search & udpate refernce_hyperparams(first priority hyperparams)
             for idx, old_param in enumerate(self.first_priority_hyperparams):
@@ -87,6 +143,7 @@ class BaseCropModel:
                 self.first_priority_hyperparams[idx] = merged_param
 
             # search & update warning_hyperparams
+            # TODO: Not Implemented yet
 
     def get_gdd_weather_df(self):
         if self.weather_df is None:
@@ -220,22 +277,24 @@ class BaseCropModel:
         # 우선 계산 필요한 event들 계산 => ret에 저장
         for param in self.first_priority_hyperparams:
             if param['method'] == 'GDD':
-                event = self.calculate_gdd_hyperparam(param)
+                _matching_param = filter(
+                    lambda x: is_hyperparam_equal(x, param),
+                    self.gdd_hyperparams
+                )
+                matching_param = next(_matching_param)
+                event = self.calculate_gdd_hyperparam(matching_param)
+                ret.update({event['type']: event['doy']})
 
-                base_type = event['type'].split('_')[0]
-                ret.update({
-                    base_type: event['doy'],
-                    base_type + '_range': event['doy']
-                })
             elif param['method'] == 'DOY':
+                _matching_param = filter(
+                    lambda x: is_hyperparam_equal(x, param),
+                    self.doy_hyperparams
+                )
+                matching_param = next(_matching_param)
                 # NOTE: "ret" will be mutated in loop,
                 # "calculate_doy_hyperparam" method dosn't mutates "ret"
-                event = self.calculate_doy_hyperparam(param, ret)
-                base_type = event['type'].split('_')[0]
-                ret.update({
-                    base_type: event['doy'],
-                    base_type + '_range': event['doy']
-                })
+                event = self.calculate_doy_hyperparam(matching_param, ret)
+                ret.update({event['type']: event['doy']})
             else:
                 raise NotImplementedError('not implemented')
         return ret
@@ -244,30 +303,39 @@ class BaseCropModel:
         start_doy = self.start_doy
 
         # get_event
-        if param['type'].endswith('range'):
-            max_period = param.get('max_period')
-            max_period = 999 if max_period is None else max_period
-            event_doys = [
-                self.get_event_end_doy(start_doy, val)
-                for val in param['value']
-            ]
-            event_doys[1] = event_doys[0] + max_period \
-                if event_doys[1] - event_doys[0] > max_period \
-                else event_doys[1]
+        if param.get('ranged') is True:
+            period = param.get('period')
+            if isinstance(param['value'], list):
+                event_doys = [
+                    self.get_event_end_doy(start_doy, val)
+                    for val in param['value']
+                ]
+                if period is not None:
+                    # upper bound to doys
+                    event_doys[1] = event_doys[0] + period \
+                        if event_doys[1] - event_doys[0] > period \
+                        else event_doys[1]
+
+            else:
+                event_doy = self.get_event_end_doy(start_doy, param['value'])
+                event_doys = [event_doy, event_doy + param['period']]
 
             # apply limits to doy
             event_doys = [
                 max(event_doys[0], 0),
                 min(event_doys[1], 366 * 2)
             ]
+            ranged = True
 
         else:
             event_doys = self.get_event_end_doy(start_doy, param['value'])
+            ranged = False
 
         event = {
             'type': param.get('type'),
             'name': param.get('name', ''),
             'doy': event_doys,
+            'ranged': ranged,
             'text': param.get('text', '')
         }
         return event
@@ -295,11 +363,17 @@ class BaseCropModel:
 
             event_doys.append(ret_doy)
 
-        event_doys = event_doys[0] if len(event_doys) == 1 else event_doys
+        if len(event_doys) == 1:
+            event_doys = event_doys[0]
+            ranged = False
+        else:
+            ranged = True
+
         event = {
             'type': param.get('type'),
             'name': param.get('name', ''),
             'doy': event_doys,
+            'ranged': ranged,
             'text': param.get('text', '')
         }
         return event
@@ -474,6 +548,7 @@ class BaseCropModel:
         return {
             'type': 'growth_range',
             'name': '재배기간',
+            'ranged': True,
             'doy': [self.start_doy, self.end_doy]
         }
 
