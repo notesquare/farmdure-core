@@ -34,8 +34,8 @@ GDD 기반 작물 재배 스케쥴러
 ### PyPI
     pip install farmdure
 ### 소스코드
-    git clone https://github.com/notesquare/drd-agri-cropscheduler.git
-    cd drd-agri-cropscheduler
+    git clone https://github.com/notesquare/farmdure-core.git
+    cd farmdure-core
     python -m pip install .
 
 ## 사용예시
@@ -259,7 +259,7 @@ gdd_hyperparams:
     - 생육과정이 기간에 해당하는 지 여부. boolean
     - 해당값이 true인 경우, value 값이 길이 2인 리스트이거나 period 값이 존재하여야 함
 * period
-    - 생육과정이 기간에 해당할 경우 그 기간의 길이를 제한하기 위한 값
+    - 생육과정이 기간에 해당할 경우 그 기간의 길이를 제한하기 위한 값. 단위는 일(days)
     - ranged 값이 true일 것이 전제됨
     - value 값이 길이 2인 리스트일 경우, period는 기간의 최대값을 정의하고 생육과정의 길이는 해당값을 넘지 못함
     - value 값이 수(number)일 경우, period는 기간의 최소값을 정의하고 생육과정의 길이는 항상 해당값을 넘음
@@ -301,14 +301,14 @@ doy_hyperparams:
     해당 옵션은 관개 정보를 표시하는 기능을 함
 * ref, value
     - ref 와 value 는 서로 길이가 동일한 리스트여야 함
-    - ref 는 날짜 계산의 기준이고 value 는 기준일로부터의 일수 차이
+    - ref 는 날짜 계산의 기준이고 value 는 기준일로부터의 일수 차이로 단위는 일(days)임
     - 위 예에서 파종은 정식 25일 전, 기비는 정식 5일전 ~ 정식 4일전
 * index
     - index 는 날짜 계산의 기준이 기간일 경우 기간의 시작일과 종류일 중 하나를 선택하는 역할을 함
     - index 값이 0 이면 시작일, 1이면 종료일을 가리킴
     - 위 예에서 배동받이때는 출수(heading) 시작 20일 전 ~ 출수 시작일 까지,
 * water_level
-    - expose_to: [water_level] 일 때 사용되는 항목으로 수위를 표시함
+    - expose_to: [water_level] 일 때 사용되는 항목으로 수위를 의미하며 단위는 cm 임
     - 위 예에서 배동받이때의 수위는 시작일 기준 5cm, 종류일 기준 10cm 임
 ####  우선 계산이 필요한 파라미터 예시 및 작성 요령
 ```yaml
@@ -371,17 +371,17 @@ first_priority_hyperparams:
     - 경고 파라미터는 특정 조건을 만족할 경우 경작시 주의가 필요함을 표시하기 위한 정보임
     - method 항목에 해당 경고의 작동방식 데이터를 갖고 있으며 method의 값에 따라 항목의 종류가 변하게 됨
     - method 가 temperature_and_exposure 인 경고는 극한의 온도에 일정한 일수 이상 노출되는 것을 의미하고 각 항목을 아래와 같이 해석함
-        - high_extrema_temperature의 온도를 초과하는 날이 high_extrema_exposure_days 이상
-        - low_extrema_temperature의 온도 미만의 날이 low_extrema_exposure_days 이상
+        - high_extrema_temperature의 온도(℃)를 초과하는 날이 high_extrema_exposure_days 이상
+        - low_extrema_temperature의 온도(℃) 미만의 날이 low_extrema_exposure_days 이상
     - method 가 milestone_and_temperature_condition 인 경고는 특정 생육과정 중 일정한 온도에서 벗어날 경우를 의미하고 각 항목을 아래와 같이 해석함
         - milestone 의 기간 중 condition이 충족될 경우 warning_data를 표시
-        - 상기예에서는 수확일 120일 전부터 수확일 60일 후의 기간 중 최고기온이 25도 이상인 경우 수확량 감소에 주의하여야 함을 알릴 수 있음
+        - 상기예에서는 수확일 120일 전부터 수확일 60일 후의 기간 중 최고기온이 25℃ 이상인 경우 수확량 감소에 주의하여야 함을 알릴 수 있음
     - method 가 milestone_length_condition 인 경고는 특정 생육과정이 일정한 기간 동안 지속하지 못하는 경우를 의미하고 각 항목을 아래와 같이 해석함
         - milestone 의 기간 중 condition이 충족될 경우 warning_data를 표시
         - 상기예에서는 정식일부터 수확기 시작일까지의 기간이 75일 이상일 경우 재배가능성이 낮음을 알릴 수 있음
 
 * method
-    - 참조 받는 파라미터가 GDD 기준으로 계산되어야 하는 것이면 "GDD", 날짜 기준으로 계산되어야 하는 것이면 "DOY"로 기재
+    - 참조 받는 파라미터가 GDD 기준으로 계산되어야 하는 것이면 "GDD", 날짜 기준으로 계산되어야 하는 것이면 "DOY" 로 기재
 * type, name
     - 참조 받는 파라미터의 type과 name
 
