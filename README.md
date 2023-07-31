@@ -32,7 +32,7 @@ GDD 기반 작물 재배 스케쥴러
 
 ## 설치 방법
 ### PyPI
-    pip install farmdure
+    pip install farmdurecore
 ### 소스코드
     git clone https://github.com/notesquare/farmdure-core.git
     cd farmdure-core
@@ -42,7 +42,7 @@ GDD 기반 작물 재배 스케쥴러
 ### 작물 모델 목록 보기
 
 ```python
-from farmdure.crops import CropModels
+from farmdurecore.crops import CropModels
 
 crop_models = {ModelClass.key: ModelClass for ModelClass in CropModels}
 {model.key: model.name for model in crop_models.values()}
@@ -51,7 +51,7 @@ crop_models = {ModelClass.key: ModelClass for ModelClass in CropModels}
 ### 작물 선택 & 기본정보 확인
 
 ```python
-from farmdure.utils.helper import get_default_crop_params
+from farmdurecore.utils.helper import get_default_crop_params
 
 
 # Select crop model
@@ -71,7 +71,7 @@ crop_model
 
 ```python
 # Synch weather data to crop model
-from farmdure.utils.weather import get_sample_weather_data
+from farmdurecore.utils.weather import get_sample_weather_data
 
 
 sample_weather_data = get_sample_weather_data()  # http://farmdure.notesquare.co.kr/ 에서 원하는 기상자료 다운로드 가능
@@ -176,7 +176,7 @@ crop_model.update_parameters([
     - set_weather_data(weather_df)
     
         작물 모델의 시뮬레이션에 필요한 기상데이터.
-        기상데이터는 farmdure.utils.weather 모듈의 get_sample_weather_data 함수를 호출하여 샘플 자료를 획득하거나
+        기상데이터는 farmdurecore.utils.weather 모듈의 get_sample_weather_data 함수를 호출하여 샘플 자료를 획득하거나
         http://farmdure.notesquare.co.kr/ 에서 원하는 자료를 내려받는 것이 가능
     
     - set_start_doy(start_doy=None)
