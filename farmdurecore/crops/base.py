@@ -142,6 +142,14 @@ class BaseCropModel:
                 merged_param = {**old_param, **new_param}
                 self.first_priority_hyperparams[idx] = merged_param
 
+            # when updating parameter is referenced by growth_gdd_rule
+            growth_gdd_rule = getattr(self, 'growth_gdd_rule', {})
+            if growth_gdd_rule.get('ref') == param_type:
+                growth_gdd_rule_idx = growth_gdd_rule.get('index')
+                if growth_gdd_rule_idx is None:
+                    growth_gdd_rule['index'] = 0
+                setattr(self, 'growth_gdd_rule', growth_gdd_rule)
+
             # search & update warning_hyperparams
             # TODO: Not Implemented yet
 
